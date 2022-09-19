@@ -1,0 +1,157 @@
+from random import randint
+from hexy.hex_tile import HexTile
+import numpy as np
+import hexy as hx
+from HexDirections import HexDirections
+import pygame as pg
+from random import randint
+
+
+def makeHexSurface(
+    color, radius, border_color=(100, 100, 100), border=False, hollow=False
+):
+    """
+    Draws a hexagon with gray borders on a pygame surface.
+    :param color: The fill color of the hexagon.
+    :param radius: The radius (from center to any corner) of the hexagon.
+    :param border_color: Color of the border.
+    :param border: Draws border if True.
+    :param hollow: Does not fill hex with color if True.
+    :return: A pygame surface with a hexagon drawn on it
+    """
+    angles_in_radians = np.deg2rad([60 * i + 30 for i in range(6)])
+    x = radius * np.cos(angles_in_radians)
+    y = radius * np.sin(angles_in_radians)
+    points = np.round(np.vstack([x, y]).T)
+
+    sorted_x = sorted(points[:, 0])
+    sorted_y = sorted(points[:, 1])
+    minx = sorted_x[0]
+    maxx = sorted_x[-1]
+    miny = sorted_y[0]
+    maxy = sorted_y[-1]
+
+    sorted_idxs = np.lexsort((points[:, 0], points[:, 1]))
+
+    surf_size = np.array((maxx - minx, maxy - miny)) * 2 + 1
+    center = surf_size / 2
+    surface = pg.Surface(surf_size)
+    surface.set_colorkey((0, 0, 0))
+
+    # Set alpha if color has 4th coordinate.
+    if len(color) >= 4:
+        surface.set_alpha(color[-1])
+
+    # fill if not hollow.
+    if not hollow:
+        pg.draw.polygon(surface, color, points + center, 0)
+
+    points[sorted_idxs[-1:-4:-1]] += [0, 1]
+    # if border is true or hollow is true draw border.
+    if border or hollow:
+        pg.draw.lines(surface, border_color, True, points + center, 1)
+
+    return surface
+
+
+class HexCell(HexTile):
+    def __init__(self, axial_coordinates, radius, elevation, tile_id, hexMap):
+        super().__init__(axial_coordinates, radius, tile_id)
+        self.axial_coordinates = np.array([axial_coordinates])
+        self.cube_coordinates = hx.axial_to_cube(self.axial_coordinates)
+        self.position = hx.axial_to_pixel(self.axial_coordinates, radius)
+        self.corners = None
+        self.tectonicColor = None
+        self.biomeColor = None
+        self.color = (255, 255, 255)
+        self.tectonicPlate = None
+        self.hexMap = hexMap
+        self.elevation = elevation
+        self.setCorners()
+
+    def draw(self):
+        self.image = makeHexSurface(self.color, self.radius)
+
+    def setCorners(self):
+        angles_in_radians = np.deg2rad([60 * i + 30 for i in range(6)])
+        x = self.radius * np.cos(angles_in_radians) + self.get_position()[0]
+        y = self.radius * np.sin(angles_in_radians) + self.get_position()[1]
+        points = np.round(np.vstack([x, y]).T)
+        self.corners = points
+        self.setEdges()
+
+    def setEdges(self):
+        self.edges = [
+            (self.corners[0], self.corners[1]),
+            (self.corners[1], self.corners[2]),
+            (self.corners[2], self.corners[3]),
+            (self.corners[3], self.corners[4]),
+            (self.corners[4], self.corners[5]),
+            (self.corners[5], self.corners[0]),
+        ]
+
+    def setColor(self, color):
+        self.color = color
+        self.draw()
+
+    def setTectonicColor(self, color):
+        self.tectonicColor = color
+
+    def setBiomeColor(self, color):
+        self.biomeColor = color
+
+    def setTectonicPlate(self, plate: int):
+        self.tectonicPlate = plate
+
+    def setHexMap(self, hexMap):
+        self.hexMap = hexMap
+
+    def setElevation(self, elevation):
+        self.elevation = elevation
+
+    def getEdge(self, direction: int):
+        return self.edges[direction]
+
+    def get_position(self):
+        return self.position[0]
+
+    def setNeighbors(self):
+        self.neighbors = self.getNeighbors()
+
+    def getNeighbors(self):
+        neighbors = []
+        for direction in HexDirections:
+            neighbor = self.getNeighbor(direction)
+            neighbors.append(neighbor)
+        return neighbors
+
+    def getNeighbor(self, direction):
+        SE = np.array((1, 0, -1))
+        SW = np.array((0, 1, -1))
+        W = np.array((-1, 1, 0))
+        NW = np.array((-1, 0, 1))
+        NE = np.array((0, -1, 1))
+        E = np.array((1, -1, 0))
+        ALL_DIRECTIONS = np.array(
+            [
+                NW,
+                NE,
+                E,
+                SE,
+                SW,
+                W,
+            ]
+        )
+
+        neighborCoord = hx.get_neighbor(
+            self.cube_coordinates, ALL_DIRECTIONS[direction.value]
+        )
+
+        neighborCoord = hx.cube_to_axial(neighborCoord)
+
+        neighborCoord = f"{neighborCoord[0][0]},{neighborCoord[0][1]}"
+        try:
+            neighbor = self.hexMap._map[neighborCoord]
+        except:
+            neighbor = None
+        return neighbor
