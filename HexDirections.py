@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class HexDirections(Enum):
-    SE = 0
-    SW = 1
-    W = 2
-    NW = 3
-    NE = 4
-    E = 5
+    W = 0
+    NW = 1
+    NE = 2
+    E = 3
+    SE = 4
+    SW = 5

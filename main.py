@@ -7,11 +7,12 @@ from HexDirections import HexDirections
 import pygame as pg
 import sys
 import HexMapManager as hmm
+import HexTectonics
 
 black = (0, 0, 0)
-size = [70,50]
-nPlates = 25
-ratio = 0.5
+size = [80, 70]
+nPlates = 30
+ratio = 0.3
 tileSize = 6
 HexMapManager = hmm.HexMapManager()
 HexMapManager.createMap(size, tileSize, nPlates, ratio)
@@ -19,6 +20,10 @@ HexMapManager.createMap(size, tileSize, nPlates, ratio)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
 
+HexTectonics.getCollisionType(
+    HexMapManager.currentMap.tectonicPlates[0],
+    HexMapManager.currentMap.tectonicPlates[HexMapManager.currentMap.tectonicPlates[0].neighboringPlates[0]],
+)
 print("starting")
 
 while True:

@@ -68,7 +68,7 @@ class HexMapManager:
         self.queueUpdate()
 
     def drawArrows(self):
-        for plate in self.currentMap.TectonicPlates:
+        for plate in self.currentMap.tectonicPlates:
             for cell in plate.cells:
                 currentSprite = arrow(
                     self.arrowImage,

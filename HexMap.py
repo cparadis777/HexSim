@@ -13,10 +13,12 @@ class HexMap(hx.HexMap):
     def __init__(self):
         super().__init__()
         opensimplex.random_seed()
-        self.TectonicPlates = []
+        self.tectonicPlates = []
+        self.mapSize = None
 
     def createCells(self, mapSize, tileSize):
         coords = []
+        self.mapSize = mapSize
         if len(mapSize) == 1:
             spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize)
             coords = hx.cube_to_axial(spiralCoordinates)
@@ -43,10 +45,10 @@ class HexMap(hx.HexMap):
                 125 + randint(-125, 125),
                 125 + randint(-125, 125),
             )
-            for i in self.TectonicPlates
+            for i in self.tectonicPlates
         ]
-        assignPlates(list(self._map.values()), self.TectonicPlates, colors)
-        for plate in self.TectonicPlates:
+        assignPlates(list(self._map.values()), self.tectonicPlates, colors)
+        for plate in self.tectonicPlates:
             plate.setBoundaryCells()
             plate.map = self
             plate.generateElevation()
@@ -56,9 +58,9 @@ class HexMap(hx.HexMap):
         nContinental = nPlates * ratio
         for i in range(nPlates):
             if i < nContinental:
-                self.TectonicPlates.append(TectonicPlate(types[1]))
+                self.tectonicPlates.append(TectonicPlate(types[1]))
             else:
-                self.TectonicPlates.append(TectonicPlate(types[0]))
+                self.tectonicPlates.append(TectonicPlate(types[0]))
 
     def setCellsBiomes(self):
         for cell in self.values():

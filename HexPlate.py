@@ -3,6 +3,7 @@ from HexDirections import HexDirections
 import hexy as hx
 import numpy as np
 import opensimplex
+import HexTectonics
 
 
 class TectonicPlate:
@@ -12,6 +13,7 @@ class TectonicPlate:
         self.boundaryCells = []
         self.setDirection()
         self.neighboringPlates = []
+        self.collisionTypes = []
         self.type = type
 
     def addCell(self, cell):
@@ -40,7 +42,12 @@ class TectonicPlate:
             cell.setTectonicColor(newColor)
 
     def generateElevation(self):
-        base = 25 if self.type == "continental" else -75
+        for plate in self.neighboringPlates:
+            self.collisionTypes.append(
+                HexTectonics.getCollisionType(self, self.map.tectonicPlates[plate])
+            )
+
+        base = 50 if self.type == "continental" else -75
         for i in self.cells:
             coord = i.axial_coordinates
             i.setElevation(

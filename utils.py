@@ -1,6 +1,6 @@
 import numpy as np
 
- 
+
 def axial_to_offset(axial):
     q = int(axial[0][0])
     r = int(axial[0][1])
@@ -19,3 +19,5 @@ def offset_to_axial(offset):
     q = col - ((row - (row & 1)) / 2)
     r = row
     return np.array([[q, r]])
+
+
