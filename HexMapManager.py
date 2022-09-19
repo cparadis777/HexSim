@@ -62,9 +62,9 @@ class HexMapManager:
         for i in self.spritesList:
             self.main_surf.blit(i.image, (i.position[0] + 500, i.position[1] + 500))
 
-    def createMap(self, radius, size, nPlates, ratio):
-        self.currentMap = HexMap(radius)
-        self.currentMap.createMap(size, nPlates, ratio)
+    def createMap(self, mapSize, tileSize, nPlates, ratio):
+        self.currentMap = HexMap()
+        self.currentMap.createMap(mapSize, tileSize, nPlates, ratio)
         self.queueUpdate()
 
     def drawArrows(self):

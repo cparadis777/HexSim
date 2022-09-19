@@ -9,18 +9,17 @@ import sys
 import HexMapManager as hmm
 
 black = (0, 0, 0)
-radius = 48
-nPlates = 10
+size = [70,50]
+nPlates = 25
 ratio = 0.5
 tileSize = 6
 HexMapManager = hmm.HexMapManager()
-HexMapManager.createMap(radius, tileSize, nPlates, ratio)
+HexMapManager.createMap(size, tileSize, nPlates, ratio)
 # HexMapManager.drawArrows()
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
 
 print("starting")
-
 
 while True:
     for event in pg.event.get():
@@ -32,7 +31,7 @@ while True:
             if event.key == pg.K_1:
                 HexMapManager.setMode(1)
             if event.key == pg.K_n:
-                HexMapManager.createMap(radius, tileSize, nPlates, ratio)
+                HexMapManager.createMap(size, tileSize, nPlates, ratio)
                 HexMapManager.setMode(1)
 
     HexMapManager.update()

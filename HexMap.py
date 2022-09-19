@@ -6,23 +6,33 @@ import numpy as np
 from random import randint
 from HexPlate import TectonicPlate
 import opensimplex
+from utils import *
 
 
 class HexMap(hx.HexMap):
-    def __init__(self, radius):
+    def __init__(self):
         super().__init__()
         opensimplex.random_seed()
-        self.radius = radius
         self.TectonicPlates = []
 
-    def createCells(self, size):
-        spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, self.radius)
-        axial_coordinates = hx.cube_to_axial(spiralCoordinates)
-        for i, v in enumerate(axial_coordinates):
-            coord = f"{v[0]},{v[1]}"
-            self.setitem_direct(coord, HexCell.HexCell(v, size, 0, i, self))
+    def createCells(self, mapSize, tileSize):
+        coords = []
+        if len(mapSize) == 1:
+            spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize)
+            coords = hx.cube_to_axial(spiralCoordinates)
 
-        for v in axial_coordinates:
+        elif len(mapSize) == 2:
+            if mapSize[0] % 2 != 0 or mapSize[1] % 2 != 0:
+                raise Exception("Grid size not even")
+            for i in range(int(-mapSize[0] / 2), int(mapSize[0] / 2)):
+                for j in range(int(-mapSize[1] / 2), int(mapSize[1] / 2)):
+                    coords.append(offset_to_axial(np.array([[i, j]]))[0])
+
+        for i, v in enumerate(coords):
+            coord = f"{v[0]},{v[1]}"
+            self.setitem_direct(coord, HexCell.HexCell(v, tileSize, 0, i, self))
+
+        for v in coords:
             coord = f"{v[0]},{v[1]}"
             self._map[coord].setNeighbors()
 
@@ -61,8 +71,8 @@ class HexMap(hx.HexMap):
             else:
                 cell.setBiomeColor((0, 125, 25))
 
-    def createMap(self, size, nPlates, ratio):
-        self.createCells(size)
+    def createMap(self, mapSize, tileSize, nPlates, ratio):
+        self.createCells(mapSize, tileSize)
         self.createTectonicPlates(nPlates, ratio)
         self.generateTectonis()
         self.setCellsBiomes()
