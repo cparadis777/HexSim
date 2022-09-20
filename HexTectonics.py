@@ -73,5 +73,4 @@ def getCollisionType(plate1, plate2):
         collisionType = "Transform"
     if 100 <= magnitude:
         collisionType = "Convergent"
-    print(collisionType)
     return collisionType

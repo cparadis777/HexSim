@@ -1,5 +1,10 @@
 import pygame as pg
 from HexMap import HexMap
+from joblib import Parallel, delayed
+from pygame.locals import *
+import time
+
+flags = DOUBLEBUF
 
 
 class arrow(pg.sprite.Sprite):
@@ -29,19 +34,30 @@ class HexMapManager:
     def pgInit(self):
         self.height, self.width = 1000, 1000
         self.screenCenter = (self.height / 2, self.width / 2)
-        self.screen = pg.display.set_mode((self.height, self.width))
+        self.screen = pg.display.set_mode((self.height, self.width), flags)
         self.main_surf = None
         self.font = None
         self.clock = None
         self.main_surf = pg.display.set_mode((self.height, self.width))
 
     def setMode(self, mode):
+        # start = time.time()
+        if mode == self.mode:
+            return
         self.mode = mode
-        for i in list(self.currentMap.values()):
-            if self.mode == 1:
-                i.setColor(i.biomeColor)
-            elif self.mode == 0:
-                i.setColor(i.tectonicColor)
+        """
+        cells = list(self.currentMap.values())
+        if self.mode == 0:
+            Parallel(n_jobs=2, prefer="threads")(
+                delayed(i.setColor)(i.tectonicColor) for i in cells
+            )
+        elif self.mode == 1:
+            Parallel(n_jobs=2, prefer="threads")(
+                delayed(i.setColor)(i.biomeColor) for i in cells
+            )
+        stop = time.time()
+        print(stop - start)
+        """
         self.queueUpdate()
 
     def queueUpdate(self):
@@ -54,17 +70,23 @@ class HexMapManager:
             self.update_enabled = False
 
     def draw(self):
+        start = time.time()
         for cell in list(self.currentMap.values()):
-            cell.draw()
+            cell.draw(self.mode)
             self.main_surf.blit(
-                cell.image, (cell.get_position()[0] + 500, cell.get_position()[1] + 500)
+                cell.image, (cell.get_position()[0], cell.get_position()[1])
             )
         for i in self.spritesList:
             self.main_surf.blit(i.image, (i.position[0] + 500, i.position[1] + 500))
 
+        stop = time.time()
+        print(f"Draw call took {stop-start}s")
+
     def createMap(self, mapSize, tileSize, nPlates, ratio):
         self.currentMap = HexMap()
-        self.currentMap.createMap(mapSize, tileSize, nPlates, ratio)
+        self.currentMap.createMap(
+            mapSize, tileSize, nPlates, ratio, (self.width, self.height)
+        )
         self.queueUpdate()
 
     def drawArrows(self):

@@ -7,6 +7,7 @@ from random import randint
 from HexPlate import TectonicPlate
 import opensimplex
 from utils import *
+import time
 
 
 class HexMap(hx.HexMap):
@@ -15,10 +16,11 @@ class HexMap(hx.HexMap):
         opensimplex.random_seed()
         self.tectonicPlates = []
         self.mapSize = None
+        self.screenSize = None
 
     def createCells(self, mapSize, tileSize):
         coords = []
-        self.mapSize = mapSize
+
         if len(mapSize) == 1:
             spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize)
             coords = hx.cube_to_axial(spiralCoordinates)
@@ -32,7 +34,9 @@ class HexMap(hx.HexMap):
 
         for i, v in enumerate(coords):
             coord = f"{v[0]},{v[1]}"
-            self.setitem_direct(coord, HexCell.HexCell(v, tileSize, 0, i, self))
+            self.setitem_direct(
+                coord, HexCell.HexCell(v, tileSize, 0, i, self, self.screenSize)
+            )
 
         for v in coords:
             coord = f"{v[0]},{v[1]}"
@@ -66,18 +70,25 @@ class HexMap(hx.HexMap):
         for cell in self.values():
             if cell.elevation < 0:
                 cell.setBiomeColor((52, 70, 235))
-            elif 0 <= cell.elevation < 90:
+            elif 0 <= cell.elevation < 50:
                 cell.setBiomeColor((0, 125, 25))
+            elif 50 <= cell.elevation < 90:
+                cell.setBiomeColor((116, 118, 125))
             elif 90 <= cell.elevation:
                 cell.setBiomeColor((255, 255, 255))
             else:
                 cell.setBiomeColor((0, 125, 25))
 
-    def createMap(self, mapSize, tileSize, nPlates, ratio):
+    def createMap(self, mapSize, tileSize, nPlates, ratio, screenSize):
+        start = time.time()
+        self.screenSize = screenSize
+        self.mapSize = mapSize
         self.createCells(mapSize, tileSize)
         self.createTectonicPlates(nPlates, ratio)
         self.generateTectonis()
         self.setCellsBiomes()
+        stop = time.time()
+        print(f"Map generated in: {stop-start}s")
 
     def draw(self):
         for i in self._map.values():

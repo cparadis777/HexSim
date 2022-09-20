@@ -9,11 +9,13 @@ import sys
 import HexMapManager as hmm
 import HexTectonics
 
+
+#sys.setrecursionlimit(300)
 black = (0, 0, 0)
-size = [80, 70]
-nPlates = 30
+size = [60, 40]
+nPlates = 15
 ratio = 0.3
-tileSize = 6
+tileSize = 12
 HexMapManager = hmm.HexMapManager()
 HexMapManager.createMap(size, tileSize, nPlates, ratio)
 # HexMapManager.drawArrows()
@@ -22,7 +24,9 @@ HexMapManager.setMode(1)
 
 HexTectonics.getCollisionType(
     HexMapManager.currentMap.tectonicPlates[0],
-    HexMapManager.currentMap.tectonicPlates[HexMapManager.currentMap.tectonicPlates[0].neighboringPlates[0]],
+    HexMapManager.currentMap.tectonicPlates[
+        HexMapManager.currentMap.tectonicPlates[0].neighboringPlates[0]
+    ],
 )
 print("starting")
 
@@ -37,7 +41,6 @@ while True:
                 HexMapManager.setMode(1)
             if event.key == pg.K_n:
                 HexMapManager.createMap(size, tileSize, nPlates, ratio)
-                HexMapManager.setMode(1)
 
     HexMapManager.update()
 
