@@ -1,10 +1,6 @@
 import pygame as pg
 from HexMap import HexMap
-from joblib import Parallel, delayed
-from pygame.locals import *
 import time
-
-flags = DOUBLEBUF
 
 
 class arrow(pg.sprite.Sprite):
@@ -28,14 +24,14 @@ class HexMapManager:
 
         self.update_enabled = False
         self.pgInit()
-        self.arrowImage = pg.image.load("arrow.jpg").convert_alpha()
+        self.arrowImage = pg.image.load("arrow.png").convert_alpha()
         self.spritesList = []
         self.mode = 0
 
     def pgInit(self):
         self.height, self.width = 1000, 1000
         self.screenCenter = (self.height / 2, self.width / 2)
-        self.screen = pg.display.set_mode((self.height, self.width), flags)
+        self.screen = pg.display.set_mode((self.height, self.width))
         self.main_surf = None
         self.font = None
         self.clock = None

@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "hex sim"
+version = "0.1.0"
+description = "An A-Z worldmaker"
+authors = ["Cédric Paradis"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = ">= 2.0.0"
+Hexy = "^1.4.4"
+opensimplex = "^0.4.3"
+numpy = "^1.23.3"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^5.0.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

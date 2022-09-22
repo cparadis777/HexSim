@@ -1,7 +1,6 @@
 from random import randint
-import hexy as hx
-import utils
 import math
+import utils
 import HexDirections
 
 
@@ -9,7 +8,7 @@ def assignPlates(cells, plates):
     frontiers = {plate: [] for plate in plates}
     for plate in plates:
         cell = cells[randint(0, len(cells))]
-        while cell.getTectonicPlate() != None:
+        while cell.getTectonicPlate() is not None:
             cell = cells[randint(0, len(cells) - 1)]
         plate.addCell(cell)
         frontiers[plate].append(cell)
@@ -32,37 +31,20 @@ def assignPlates(cells, plates):
                     frontiers[currentPlate].append(neighbor)
                 elif neighbor.getTectonicPlate() is not None:
                     if neighbor.getTectonicPlate() in currentPlate.boundaries.keys():
-                        currentPlate.boundaries[neighbor.getTectonicPlate()].append(chosenCell)
+                        currentPlate.boundaries[neighbor.getTectonicPlate()].append(
+                            chosenCell
+                        )
                     else:
-                        currentPlate.boundaries[neighbor.getTectonicPlate()] = [chosenCell]
+                        currentPlate.boundaries[neighbor.getTectonicPlate()] = [
+                            chosenCell
+                        ]
             frontiers[currentPlate].remove(chosenCell)
         i += 1
     print("Done assigning cells")
 
 
-def assignPlatesByCell(cells, plates):
-
-    plateRoots = {}
-    for plate in plates:
-        cell = cells[randint(0, len(cells) - 1)]
-        plateRoots[cell] = plate
-        plate.addCell(cell)
-        cells.remove(cell)
-
-    for cell in cells:
-        closestRoot = None
-        closestDistance = 1000000000
-        for root in plateRoots:
-            dist = hx.get_cube_distance(root.cube_coordinates, cell.cube_coordinates)
-            if dist < closestDistance:
-                closestDistance = dist
-                closestRoot = root
-        plateRoots[closestRoot].addCell(cell)
-
-
 def getCollisionMagnitude(plate1, plate2):
     relativeDirection = None
-    collisionType = None
     speed1, direction1 = plate1.speed, plate1.direction
     speed2, direction2 = plate2.speed, plate2.direction
 
@@ -93,5 +75,4 @@ def getCollisionMagnitude(plate1, plate2):
     magnitude = math.sqrt(relativeSpeedx**2 + relativeSpeedy**2) * (
         relativeDirection.value - direction1.value
     )
-    magnitude = utils.clamp(magnitude, -75, 75)
-    return magnitude
+    return utils.clamp(magnitude, -300, 300)

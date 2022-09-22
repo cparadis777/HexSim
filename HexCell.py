@@ -1,10 +1,10 @@
-from random import randint
 from hexy.hex_tile import HexTile
 import numpy as np
 import hexy as hx
 from HexDirections import HexDirections
 import pygame as pg
-from random import randint
+
+# from random import randint
 from HexPlate import TectonicPlate
 
 
@@ -75,6 +75,8 @@ class HexCell(HexTile):
         self.tectonicPlate = None
         self.hexMap = hexMap
         self.elevation = elevation
+        self.temperature = 0
+        self.windDirection = None
         self.setCorners()
 
     def draw(self, mode):
@@ -98,23 +100,32 @@ class HexCell(HexTile):
             (self.corners[5], self.corners[0]),
         ]
 
-    def setTectonicColor(self, color):
+    def setTectonicColor(self, color) -> None:
         self.tectonicColor = color
         self.colors[0] = color
         # print(f"{self.colors[0]}, {self.getTectonicPlate().color}")
 
-    def setBiomeColor(self, color):
+    def setBiomeColor(self, color) -> None:
         self.biomeColor = color
         self.colors[1] = color
 
-    def setTectonicPlate(self, plate: TectonicPlate):
+    def setTectonicPlate(self, plate: TectonicPlate) -> None:
         self.tectonicPlate = plate
 
-    def setHexMap(self, hexMap):
+    def setHexMap(self, hexMap) -> None:
         self.hexMap = hexMap
 
-    def setElevation(self, elevation):
+    def setElevation(self, elevation) -> None:
         self.elevation = elevation
+
+    def setTemperature(self, temperature) -> None:
+        self.temperature = temperature
+
+    def setTemperatureColor(self, color) -> None:
+        self.colors[3] = color
+
+    def setWindDirection(self, direction: HexDirections) -> None:
+        self.windDirection = direction
 
     def getEdge(self, direction: int):
         return self.edges[direction]
@@ -125,7 +136,7 @@ class HexCell(HexTile):
     def getTectonicPlate(self) -> TectonicPlate:
         return self.tectonicPlate
 
-    def setNeighbors(self):
+    def setNeighbors(self) -> None:
         self.neighbors = self.getNeighbors()
 
     def getNeighbors(self):
@@ -135,16 +146,16 @@ class HexCell(HexTile):
             neighbors.append(neighbor)
         return neighbors
 
-    def setTectonicActivity(self, activity):
+    def setTectonicActivity(self, activity) -> None:
         self.tectonicActivity = activity
 
-    def getTectonicActivity(self):
+    def getTectonicActivity(self) -> int:
         return self.tectonicActivity
 
-    def setHeightColor(self, color):
+    def setHeightColor(self, color) -> None:
         self.colors[2] = color
 
-    def getNeighbor(self, direction):
+    def getNeighbor(self, direction) -> HexTile:
         SE = np.array((1, 0, -1))
         SW = np.array((0, 1, -1))
         W = np.array((-1, 1, 0))
@@ -171,6 +182,6 @@ class HexCell(HexTile):
         neighborCoord = f"{neighborCoord[0][0]},{neighborCoord[0][1]}"
         try:
             neighbor = self.hexMap._map[neighborCoord]
-        except:
+        except Exception:
             neighbor = None
         return neighbor

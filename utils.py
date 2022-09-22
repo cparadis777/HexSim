@@ -43,8 +43,14 @@ def colorLerp(value, min, max, color1, color2):
         color1[1] + colorDiff[1] * x,
         color1[2] + colorDiff[2] * x,
     )
-    #print(f"colorDiff: {colorDiff}. \n In:{value}, normalized: {x}, out:{color}")
+    # print(f"colorDiff: {colorDiff}. \n In:{value}, normalized: {x}, out:{color}")
     return color
+
+
+def numericalLerp(value, minValue, maxValue, minRange, maxRange) -> float:
+    x = value
+    x = normalize(x, minValue, maxValue)
+    return minRange + ((maxRange - minRange) * x)
 
 
 def normalize(value, min, max):

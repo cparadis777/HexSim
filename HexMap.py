@@ -1,14 +1,12 @@
 import hexy as hx
-import pygame as pg
-from HexTectonics import *
+from HexTectonics import assignPlates
 import HexCell as HexCell
 import numpy as np
 from random import randint
 from HexPlate import TectonicPlate
 import opensimplex
-from utils import *
+import utils
 import time
-import utils as utils
 
 
 class HexMap(hx.HexMap):
@@ -19,10 +17,11 @@ class HexMap(hx.HexMap):
         self.mapSize = None
         self.screenSize = None
 
-    def createCells(self, mapSize, tileSize):
+    def createCells(self, mapSize, tileSize) -> None:
         coords = []
 
         if len(mapSize) == 1:
+            raise Exception("Map must be rectangular, not circular.")
             spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
             coords = hx.cube_to_axial(spiralCoordinates)
 
@@ -31,7 +30,7 @@ class HexMap(hx.HexMap):
                 raise Exception("Grid size not even")
             for i in range(int(-mapSize[0] / 2), int(mapSize[0] / 2)):
                 for j in range(int(-mapSize[1] / 2), int(mapSize[1] / 2)):
-                    coords.append(offset_to_axial(np.array([[i, j]]))[0])
+                    coords.append(utils.offset_to_axial(np.array([[i, j]]))[0])
 
         for i, v in enumerate(coords):
             coord = f"{v[0]},{v[1]}"
@@ -43,7 +42,7 @@ class HexMap(hx.HexMap):
             coord = f"{v[0]},{v[1]}"
             self._map[coord].setNeighbors()
 
-    def generateTectonics(self, zeta):
+    def generateTectonics(self, zeta) -> None:
         assignPlates(list(self._map.values()), self.tectonicPlates)
         print("     Cells assigned to plates")
         for i, plate in enumerate(self.tectonicPlates):
@@ -51,7 +50,7 @@ class HexMap(hx.HexMap):
             plate.generateElevation(zeta)
             print(f"     {i}/{len(self.tectonicPlates)} plates done")
 
-    def createTectonicPlates(self, nPlates, ratio):
+    def createTectonicPlates(self, nPlates, ratio) -> None:
         baseHeights = [-50, 50]
         nContinental = nPlates * ratio
         for i in range(nPlates):
@@ -65,14 +64,23 @@ class HexMap(hx.HexMap):
                     TectonicPlate(self, baseHeights[0] + randint(-20, 20), color)
                 )
 
-    def setCellsBiomes(self):
+    def setCellsBiomes(self) -> None:
         for cell in self.values():
-            if cell.elevation < 0:
+            if abs(cell.tectonicActivity) > 290:
+                print(cell.tectonicActivity)
+                cell.setBiomeColor((255, 0, 0))
+                cell.setElevation(cell.elevation + 100)
+
+            elif cell.elevation < 0:
                 cell.setBiomeColor(
                     utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
                 )
-            elif 0 <= cell.elevation < 80:
+            elif 0 <= cell.elevation < 80 and -20 < cell.temperature < 25:
                 cell.setBiomeColor((0, 125, 25))
+            elif 0 <= cell.elevation < 80 and cell.temperature >= 25:
+                cell.setBiomeColor((248, 238, 100))
+            elif 0 <= cell.elevation < 80 and cell.temperature <= -20:
+                cell.setBiomeColor((240, 240, 240))
             elif 80 <= cell.elevation < 95:
                 cell.setBiomeColor((116, 118, 125))
             elif 95 <= cell.elevation:
@@ -80,7 +88,7 @@ class HexMap(hx.HexMap):
             else:
                 cell.setBiomeColor((0, 125, 25))
 
-    def setElevationColor(self):
+    def setElevationColor(self) -> None:
         for cell in self.values():
             cell.setHeightColor(utils.grayscaleLerp(cell.elevation))
 
@@ -97,14 +105,32 @@ class HexMap(hx.HexMap):
         for i in self.tectonicPlates:
             i.shuffleEdges(0)
             i.setBoundaryCells()
-        
-        print("Attributing biomes")
-        self.setCellsBiomes()
         print("Setting making heightmap")
         self.setElevationColor()
+        print("Setting temperatures")
+        self.setTemperature(35, -40)
+        print("Attributing biomes")
+        self.setCellsBiomes()
         stop = time.time()
         print(f"Map generated in: {stop-start}s")
 
-    def draw(self):
+    def setTemperature(self, equatorTemp, polesTemp) -> None:
+        for cell in self._map.values():
+            latitude = abs(cell.axial_coordinates[0][1])
+            temperature = utils.numericalLerp(
+                latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
+            ) + randint(-5, 5)
+            cell.setTemperature(temperature)
+            hot = (
+                255,
+                0,
+                0,
+            )
+            cold = (0, 30, 152)
+            cell.setTemperatureColor(
+                utils.colorLerp(temperature, polesTemp, equatorTemp, cold, hot)
+            )
+
+    def draw(self) -> None:
         for i in self._map.values():
             i.draw()

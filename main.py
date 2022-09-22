@@ -1,22 +1,19 @@
-import numpy as np
-import hexy as hx
-from HexCell import HexCell
-from random import randint
-from HexTectonics import *
-from HexDirections import HexDirections
 import pygame as pg
 import sys
 import HexMapManager as hmm
-import HexTectonics
+import opensimplex
+from random import seed
 
-
+chosenSeed = 1234
+seed(chosenSeed)
+opensimplex.seed(chosenSeed)
 black = (0, 0, 0)
-size = [100, 80]
+size = [40, 32]
 # size = [40]
-nPlates = 50
+nPlates = 10
 ratio = 0.5
-tileSize = 4
-zeta = 0.3
+tileSize = 10
+zeta = 0.6
 HexMapManager = hmm.HexMapManager()
 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
 HexMapManager.queueUpdate()
@@ -29,17 +26,18 @@ while True:
         if event.type == pg.QUIT:
             sys.exit()
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_0:
-                print("mode switch")
+            if event.key == pg.K_2:
+                print("mode switch: tectonics")
                 HexMapManager.setMode(0)
             if event.key == pg.K_1:
-                print("monde switch")
+                print("monde switch: biomes")
                 HexMapManager.setMode(1)
-            if event.key == pg.K_2:
-                print("monde switch")
+            if event.key == pg.K_3:
+                print("monde switch: heightmap")
                 HexMapManager.setMode(2)
-            if event.key == pg.K_a:
-                HexMapManager.drawArrows()
+            if event.key == pg.K_4:
+                print("monde switch: temperature")
+                HexMapManager.setMode(3)
             if event.key == pg.K_n:
                 print("Regen")
                 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)

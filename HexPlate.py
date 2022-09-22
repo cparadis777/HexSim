@@ -1,7 +1,9 @@
 from random import randint
 from HexDirections import HexDirections
-import hexy as hx
-import numpy as np
+import utils
+
+# import hexy as hx
+# import numpy as np
 import opensimplex
 import HexTectonics
 
@@ -70,22 +72,21 @@ class TectonicPlate:
     def generateElevation(self, zeta=0.5):
 
         for boundary in self.boundaries:
-            self.collisions[boundary] = HexTectonics.getCollisionMagnitude(
-                self, boundary
-            )
+            magnitude = HexTectonics.getCollisionMagnitude(self, boundary)
+            self.collisions[boundary] = utils.clamp(magnitude, -75, 75)
             heightDifference = self.baseHeight - boundary.baseHeight
             if abs(heightDifference) < 30:
                 for cell in self.boundaries[boundary]:
-                    cell.setTectonicActivity(self.collisions[boundary])
+                    cell.setTectonicActivity(magnitude)
                     self.propagateTectonics(cell, zeta)
 
             elif heightDifference >= 30:
                 for cell in self.boundaries[boundary]:
-                    cell.setTectonicActivity(self.collisions[boundary])
+                    cell.setTectonicActivity(magnitude)
                     self.propagateTectonics(cell, zeta)
             elif heightDifference <= -30:
                 for cell in self.boundaries[boundary]:
-                    cell.setTectonicActivity(-self.collisions[boundary])
+                    cell.setTectonicActivity(-magnitude)
                     self.propagateTectonics(cell, zeta)
 
         for i in self.cells:
@@ -95,4 +96,4 @@ class TectonicPlate:
                 * i.getTectonicActivity()
                 + self.baseHeight
             )
-           # print(i.elevation)
+        # print(i.elevation)
