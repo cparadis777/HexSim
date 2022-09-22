@@ -25,6 +25,7 @@ class arrow(pg.sprite.Sprite):
 
 class HexMapManager:
     def __init__(self):
+
         self.update_enabled = False
         self.pgInit()
         self.arrowImage = pg.image.load("arrow.jpg").convert_alpha()
@@ -45,19 +46,6 @@ class HexMapManager:
         if mode == self.mode:
             return
         self.mode = mode
-        """
-        cells = list(self.currentMap.values())
-        if self.mode == 0:
-            Parallel(n_jobs=2, prefer="threads")(
-                delayed(i.setColor)(i.tectonicColor) for i in cells
-            )
-        elif self.mode == 1:
-            Parallel(n_jobs=2, prefer="threads")(
-                delayed(i.setColor)(i.biomeColor) for i in cells
-            )
-        stop = time.time()
-        print(stop - start)
-        """
         self.queueUpdate()
 
     def queueUpdate(self):
@@ -74,7 +62,7 @@ class HexMapManager:
         for cell in list(self.currentMap.values()):
             cell.draw(self.mode)
             self.main_surf.blit(
-                cell.image, (cell.get_position()[0], cell.get_position()[1])
+                cell.image, (cell.getPosition()[0], cell.getPosition()[1])
             )
         for i in self.spritesList:
             self.main_surf.blit(i.image, (i.position[0] + 500, i.position[1] + 500))
@@ -82,10 +70,10 @@ class HexMapManager:
         stop = time.time()
         print(f"Draw call took {stop-start}s")
 
-    def createMap(self, mapSize, tileSize, nPlates, ratio):
+    def createMap(self, mapSize, tileSize, nPlates, ratio, zeta):
         self.currentMap = HexMap()
         self.currentMap.createMap(
-            mapSize, tileSize, nPlates, ratio, (self.width, self.height)
+            mapSize, tileSize, nPlates, ratio, (self.width, self.height), zeta
         )
         self.queueUpdate()
 
@@ -94,7 +82,7 @@ class HexMapManager:
             for cell in plate.cells:
                 currentSprite = arrow(
                     self.arrowImage,
-                    (cell.get_position()[0] + 12, cell.get_position()[1] + 15),
+                    (cell.position[0] + 12, cell.position[1] + 15),
                 )
                 currentSprite.scale((10, 10))
                 angle = plate.direction.value * 60

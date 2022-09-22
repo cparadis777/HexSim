@@ -10,37 +10,39 @@ import HexMapManager as hmm
 import HexTectonics
 
 
-#sys.setrecursionlimit(300)
 black = (0, 0, 0)
-size = [60, 40]
-nPlates = 15
-ratio = 0.3
-tileSize = 12
+size = [100, 80]
+# size = [40]
+nPlates = 50
+ratio = 0.5
+tileSize = 4
+zeta = 0.3
 HexMapManager = hmm.HexMapManager()
-HexMapManager.createMap(size, tileSize, nPlates, ratio)
-# HexMapManager.drawArrows()
+HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
 
-HexTectonics.getCollisionType(
-    HexMapManager.currentMap.tectonicPlates[0],
-    HexMapManager.currentMap.tectonicPlates[
-        HexMapManager.currentMap.tectonicPlates[0].neighboringPlates[0]
-    ],
-)
-print("starting")
 
+print("starting")
 while True:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             sys.exit()
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_0:
+                print("mode switch")
                 HexMapManager.setMode(0)
             if event.key == pg.K_1:
+                print("monde switch")
                 HexMapManager.setMode(1)
+            if event.key == pg.K_2:
+                print("monde switch")
+                HexMapManager.setMode(2)
+            if event.key == pg.K_a:
+                HexMapManager.drawArrows()
             if event.key == pg.K_n:
-                HexMapManager.createMap(size, tileSize, nPlates, ratio)
+                print("Regen")
+                HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
 
     HexMapManager.update()
 

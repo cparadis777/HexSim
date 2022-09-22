@@ -8,6 +8,7 @@ from HexPlate import TectonicPlate
 import opensimplex
 from utils import *
 import time
+import utils as utils
 
 
 class HexMap(hx.HexMap):
@@ -22,7 +23,7 @@ class HexMap(hx.HexMap):
         coords = []
 
         if len(mapSize) == 1:
-            spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize)
+            spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
             coords = hx.cube_to_axial(spiralCoordinates)
 
         elif len(mapSize) == 2:
@@ -42,51 +43,65 @@ class HexMap(hx.HexMap):
             coord = f"{v[0]},{v[1]}"
             self._map[coord].setNeighbors()
 
-    def generateTectonis(self):
-        colors = [
-            (
-                125 + randint(-125, 125),
-                125 + randint(-125, 125),
-                125 + randint(-125, 125),
-            )
-            for i in self.tectonicPlates
-        ]
-        assignPlates(list(self._map.values()), self.tectonicPlates, colors)
-        for plate in self.tectonicPlates:
+    def generateTectonics(self, zeta):
+        assignPlates(list(self._map.values()), self.tectonicPlates)
+        print("     Cells assigned to plates")
+        for i, plate in enumerate(self.tectonicPlates):
             plate.setBoundaryCells()
-            plate.map = self
-            plate.generateElevation()
+            plate.generateElevation(zeta)
+            print(f"     {i}/{len(self.tectonicPlates)} plates done")
 
     def createTectonicPlates(self, nPlates, ratio):
-        types = ["oceanic", "continental"]
+        baseHeights = [-50, 50]
         nContinental = nPlates * ratio
         for i in range(nPlates):
+            color = (randint(0, 255), randint(0, 255), randint(0, 255))
             if i < nContinental:
-                self.tectonicPlates.append(TectonicPlate(types[1]))
+                self.tectonicPlates.append(
+                    TectonicPlate(self, baseHeights[1] + randint(-20, 20), color)
+                )
             else:
-                self.tectonicPlates.append(TectonicPlate(types[0]))
+                self.tectonicPlates.append(
+                    TectonicPlate(self, baseHeights[0] + randint(-20, 20), color)
+                )
 
     def setCellsBiomes(self):
         for cell in self.values():
             if cell.elevation < 0:
-                cell.setBiomeColor((52, 70, 235))
-            elif 0 <= cell.elevation < 50:
+                cell.setBiomeColor(
+                    utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
+                )
+            elif 0 <= cell.elevation < 80:
                 cell.setBiomeColor((0, 125, 25))
-            elif 50 <= cell.elevation < 90:
+            elif 80 <= cell.elevation < 95:
                 cell.setBiomeColor((116, 118, 125))
-            elif 90 <= cell.elevation:
+            elif 95 <= cell.elevation:
                 cell.setBiomeColor((255, 255, 255))
             else:
                 cell.setBiomeColor((0, 125, 25))
 
-    def createMap(self, mapSize, tileSize, nPlates, ratio, screenSize):
+    def setElevationColor(self):
+        for cell in self.values():
+            cell.setHeightColor(utils.grayscaleLerp(cell.elevation))
+
+    def createMap(self, mapSize, tileSize, nPlates, ratio, screenSize, zeta):
         start = time.time()
         self.screenSize = screenSize
         self.mapSize = mapSize
+        print("Creating cells")
         self.createCells(mapSize, tileSize)
+        print("Creating tectonic plates")
         self.createTectonicPlates(nPlates, ratio)
-        self.generateTectonis()
+        print("Simulating Tectonics")
+        self.generateTectonics(zeta)
+        for i in self.tectonicPlates:
+            i.shuffleEdges(0)
+            i.setBoundaryCells()
+        
+        print("Attributing biomes")
         self.setCellsBiomes()
+        print("Setting making heightmap")
+        self.setElevationColor()
         stop = time.time()
         print(f"Map generated in: {stop-start}s")
 

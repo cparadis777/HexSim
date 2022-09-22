@@ -5,6 +5,7 @@ import hexy as hx
 from HexDirections import HexDirections
 import pygame as pg
 from random import randint
+from HexPlate import TectonicPlate
 
 
 def makeHexSurface(
@@ -63,14 +64,14 @@ class HexCell(HexTile):
         self.cube_coordinates = hx.axial_to_cube(self.axial_coordinates)
         self.position = hx.axial_to_pixel(self.axial_coordinates, radius)
         self.position = (
-            self.position[0][0] + screensize[0]/2,
-            self.position[0][1] + screensize[0]/2,
+            self.position[0][0] + screensize[0] / 2,
+            self.position[0][1] + screensize[0] / 2,
         )
         self.corners = None
-        self.colors = [None, None]
+        self.colors = [None, None, None, None, None, None]
         self.tectonicColor = None
+        self.tectonicActivity = 0
         self.biomeColor = None
-        self.color = (255, 255, 255)
         self.tectonicPlate = None
         self.hexMap = hexMap
         self.elevation = elevation
@@ -81,8 +82,8 @@ class HexCell(HexTile):
 
     def setCorners(self):
         angles_in_radians = np.deg2rad([60 * i + 30 for i in range(6)])
-        x = self.radius * np.cos(angles_in_radians) + self.get_position()[0]
-        y = self.radius * np.sin(angles_in_radians) + self.get_position()[1]
+        x = self.radius * np.cos(angles_in_radians) + self.getPosition()[0]
+        y = self.radius * np.sin(angles_in_radians) + self.getPosition()[1]
         points = np.round(np.vstack([x, y]).T)
         self.corners = points
         self.setEdges()
@@ -97,19 +98,16 @@ class HexCell(HexTile):
             (self.corners[5], self.corners[0]),
         ]
 
-    def setColor(self, color):
-        self.color = color
-        self.draw()
-
     def setTectonicColor(self, color):
         self.tectonicColor = color
         self.colors[0] = color
+        # print(f"{self.colors[0]}, {self.getTectonicPlate().color}")
 
     def setBiomeColor(self, color):
         self.biomeColor = color
         self.colors[1] = color
 
-    def setTectonicPlate(self, plate: int):
+    def setTectonicPlate(self, plate: TectonicPlate):
         self.tectonicPlate = plate
 
     def setHexMap(self, hexMap):
@@ -121,8 +119,11 @@ class HexCell(HexTile):
     def getEdge(self, direction: int):
         return self.edges[direction]
 
-    def get_position(self):
+    def getPosition(self):
         return self.position
+
+    def getTectonicPlate(self) -> TectonicPlate:
+        return self.tectonicPlate
 
     def setNeighbors(self):
         self.neighbors = self.getNeighbors()
@@ -133,6 +134,15 @@ class HexCell(HexTile):
             neighbor = self.getNeighbor(direction)
             neighbors.append(neighbor)
         return neighbors
+
+    def setTectonicActivity(self, activity):
+        self.tectonicActivity = activity
+
+    def getTectonicActivity(self):
+        return self.tectonicActivity
+
+    def setHeightColor(self, color):
+        self.colors[2] = color
 
     def getNeighbor(self, direction):
         SE = np.array((1, 0, -1))
