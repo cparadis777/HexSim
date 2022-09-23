@@ -1,9 +1,9 @@
-from hexy.hex_tile import HexTile
-import numpy as np
 import hexy as hx
-from HexDirections import HexDirections
+import numpy as np
 import pygame as pg
+from hexy.hex_tile import HexTile
 
+from HexDirections import HexDirections
 # from random import randint
 from HexPlate import TectonicPlate
 
@@ -67,6 +67,7 @@ class HexCell(HexTile):
             self.position[0][0] + screensize[0] / 2,
             self.position[0][1] + screensize[0] / 2,
         )
+        self.neighbors = []
         self.corners = None
         self.colors = [None, None, None, None, None, None]
         self.tectonicColor = None
@@ -136,26 +137,34 @@ class HexCell(HexTile):
     def getTectonicPlate(self) -> TectonicPlate:
         return self.tectonicPlate
 
+
     def setNeighbors(self) -> None:
+        self.neighbors = []
+        for direction in HexDirections:
+            self.neighbors.append(self.calculateNeighbor(direction))
         self.neighbors = self.getNeighbors()
 
+
     def getNeighbors(self):
-        neighbors = []
-        for direction in HexDirections:
-            neighbor = self.getNeighbor(direction)
-            neighbors.append(neighbor)
-        return neighbors
+        return self.neighbors
+
+
+    def getNeighbor(self, direction):
+        return self.neighbors[direction.value]
+
 
     def setTectonicActivity(self, activity) -> None:
         self.tectonicActivity = activity
 
+
     def getTectonicActivity(self) -> int:
         return self.tectonicActivity
+
 
     def setHeightColor(self, color) -> None:
         self.colors[2] = color
 
-    def getNeighbor(self, direction) -> HexTile:
+    def calculateNeighbor(self, direction) -> HexTile:
         SE = np.array((1, 0, -1))
         SW = np.array((0, 1, -1))
         W = np.array((-1, 1, 0))

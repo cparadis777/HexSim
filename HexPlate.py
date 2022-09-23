@@ -1,11 +1,10 @@
 from random import randint
-from HexDirections import HexDirections
-import utils
 
 # import hexy as hx
 # import numpy as np
-import opensimplex
 import HexTectonics
+import utils
+from HexDirections import HexDirections
 
 
 class TectonicPlate:
@@ -54,46 +53,37 @@ class TectonicPlate:
                 self.cells.remove(cell)
         self.setBoundaryCells()
 
-    def propagateTectonics(self, cell, zeta):
-        if zeta > 1:
-            raise ValueError("Zeta must be ]0,1]")
-        magnitudeToPropagate = cell.getTectonicActivity() * zeta
-        for neighbor in cell.getNeighbors():
-            if neighbor is None:
-                pass
-            elif neighbor.getTectonicPlate() != self:
-                pass
-            elif abs(neighbor.getTectonicActivity()) >= abs(magnitudeToPropagate):
-                pass
-            else:
-                neighbor.setTectonicActivity(magnitudeToPropagate)
-                self.propagateTectonics(neighbor, zeta)
-
     def generateElevation(self, zeta=0.5):
 
         for boundary in self.boundaries:
             magnitude = HexTectonics.getCollisionMagnitude(self, boundary)
             self.collisions[boundary] = utils.clamp(magnitude, -75, 75)
             heightDifference = self.baseHeight - boundary.baseHeight
-            if abs(heightDifference) < 30:
+            if -30 < heightDifference < 30:
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(magnitude)
-                    self.propagateTectonics(cell, zeta)
 
             elif heightDifference >= 30:
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(magnitude)
-                    self.propagateTectonics(cell, zeta)
+
             elif heightDifference <= -30:
+                magnitude = -magnitude
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(-magnitude)
-                    self.propagateTectonics(cell, zeta)
+
+            frontier = self.boundaries[boundary]
+
+            while len(frontier) != 0 and (magnitude > 1 or magnitude < -1):
+                magnitude = magnitude * zeta
+                frontier = HexTectonics.propagateTectonics(self, frontier, magnitude)
 
         for i in self.cells:
             coord = i.axial_coordinates
+            print(i.getTectonicActivity())
             i.setElevation(
-                abs(opensimplex.noise2(x=coord[0][0], y=coord[0][1]))
-                * i.getTectonicActivity()
+                # abs(opensimplex.noise2(x=coord[0][0], y=coord[0][1]))
+                i.getTectonicActivity() / 300 * self.baseHeight
                 + self.baseHeight
             )
         # print(i.elevation)

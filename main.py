@@ -1,24 +1,25 @@
-import pygame as pg
 import sys
-import HexMapManager as hmm
-import opensimplex
 from random import seed
+
+import opensimplex
+import pygame as pg
+
+import HexMapManager as hmm
 
 chosenSeed = 1234
 seed(chosenSeed)
 opensimplex.seed(chosenSeed)
 black = (0, 0, 0)
-size = [40, 32]
+size = [200, 180]
 # size = [40]
-nPlates = 10
-ratio = 0.5
-tileSize = 10
+nPlates = 50
+ratio = 0.3
+tileSize = 2
 zeta = 0.6
 HexMapManager = hmm.HexMapManager()
 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
-
 
 print("starting")
 while True:

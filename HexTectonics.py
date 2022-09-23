@@ -1,7 +1,8 @@
-from random import randint
 import math
-import utils
+from random import randint
+
 import HexDirections
+import utils
 
 
 def assignPlates(cells, plates):
@@ -41,6 +42,29 @@ def assignPlates(cells, plates):
             frontiers[currentPlate].remove(chosenCell)
         i += 1
     print("Done assigning cells")
+
+
+def propagateTectonics(plate, cells, magnitude) -> list:
+    magnitudeToPropagate = magnitude
+    frontier = []
+    if len(cells) == 0:
+        return []
+    for cell in cells:
+        neighbors = cell.getNeighbors()
+        for neighbor in neighbors:
+            if neighbor is None:
+                pass
+            elif neighbor.tectonicPlate != plate:
+                pass
+            elif neighbor in cells:
+                pass
+            else:
+                if neighbor.getTectonicActivity() < magnitudeToPropagate:
+                    neighbor.setTectonicActivity(magnitudeToPropagate)
+                if neighbor not in frontier:
+                    frontier.append(neighbor)
+
+    return frontier
 
 
 def getCollisionMagnitude(plate1, plate2):

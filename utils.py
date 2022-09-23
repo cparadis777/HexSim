@@ -25,10 +25,10 @@ def clamp(num, min_value, max_value):
     return max(min(num, max_value), min_value)
 
 
-def grayscaleLerp(value):
+def grayscaleLerp(value, min, max):
     x = value
-    x = clamp(x, -100, 100)
-    x = normalize(x, -100, 100)
+    x = clamp(x, min, max)
+    x = normalize(x, min, max)
 
     return (255 * x, 255 * x, 255 * x)
 

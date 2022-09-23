@@ -1,12 +1,14 @@
-import hexy as hx
-from HexTectonics import assignPlates
-import HexCell as HexCell
-import numpy as np
-from random import randint
-from HexPlate import TectonicPlate
-import opensimplex
-import utils
 import time
+from random import randint
+
+import hexy as hx
+import numpy as np
+import opensimplex
+
+import HexCell as HexCell
+import utils
+from HexPlate import TectonicPlate
+from HexTectonics import assignPlates
 
 
 class HexMap(hx.HexMap):
@@ -22,8 +24,8 @@ class HexMap(hx.HexMap):
 
         if len(mapSize) == 1:
             raise Exception("Map must be rectangular, not circular.")
-            spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
-            coords = hx.cube_to_axial(spiralCoordinates)
+# spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
+# coords = hx.cube_to_axial(spiralCoordinates)
 
         elif len(mapSize) == 2:
             if mapSize[0] % 2 != 0 or mapSize[1] % 2 != 0:
@@ -43,12 +45,14 @@ class HexMap(hx.HexMap):
             self._map[coord].setNeighbors()
 
     def generateTectonics(self, zeta) -> None:
+        print("     Assigning cells to plates")
         assignPlates(list(self._map.values()), self.tectonicPlates)
-        print("     Cells assigned to plates")
+        print("     Calculating Boundaries & Propagating elevation")
         for i, plate in enumerate(self.tectonicPlates):
             plate.setBoundaryCells()
             plate.generateElevation(zeta)
-            print(f"     {i}/{len(self.tectonicPlates)} plates done")
+            print(f"\r    {i}/{len(self.tectonicPlates)} plates done", end='')
+        print(f"\r    {len(self.tectonicPlates)}/{len(self.tectonicPlates)} plates done")
 
     def createTectonicPlates(self, nPlates, ratio) -> None:
         baseHeights = [-50, 50]
@@ -66,31 +70,33 @@ class HexMap(hx.HexMap):
 
     def setCellsBiomes(self) -> None:
         for cell in self.values():
-            if abs(cell.tectonicActivity) > 290:
-                print(cell.tectonicActivity)
-                cell.setBiomeColor((255, 0, 0))
-                cell.setElevation(cell.elevation + 100)
+    # print(cell.elevation)
+    # if abs(cell.tectonicActivity) > 290:
+    #    print(cell.tectonicActivity)
+    #    cell.setBiomeColor((255, 0, 0))
+    #    cell.setElevation(cell.elevation + 100)
 
-            elif cell.elevation < 0:
-                cell.setBiomeColor(
-                    utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
-                )
-            elif 0 <= cell.elevation < 80 and -20 < cell.temperature < 25:
-                cell.setBiomeColor((0, 125, 25))
-            elif 0 <= cell.elevation < 80 and cell.temperature >= 25:
-                cell.setBiomeColor((248, 238, 100))
-            elif 0 <= cell.elevation < 80 and cell.temperature <= -20:
-                cell.setBiomeColor((240, 240, 240))
-            elif 80 <= cell.elevation < 95:
-                cell.setBiomeColor((116, 118, 125))
-            elif 95 <= cell.elevation:
-                cell.setBiomeColor((255, 255, 255))
+    # elif cell.elevation < 0:
+    if cell.elevation < 0:
+        cell.setBiomeColor(
+            utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
+        )
+    elif 0 <= cell.elevation < 100 and -20 < cell.temperature < 25:
+        cell.setBiomeColor((0, 125, 25))
+    elif 0 <= cell.elevation < 100 and cell.temperature >= 25:
+        cell.setBiomeColor((248, 238, 100))
+    elif 0 <= cell.elevation < 100 and cell.temperature <= -20:
+        cell.setBiomeColor((240, 240, 240))
+    elif 100 <= cell.elevation < 140:
+        cell.setBiomeColor((116, 118, 125))
+    elif 140 <= cell.elevation:
+        cell.setBiomeColor((255, 255, 255))
             else:
                 cell.setBiomeColor((0, 125, 25))
 
     def setElevationColor(self) -> None:
         for cell in self.values():
-            cell.setHeightColor(utils.grayscaleLerp(cell.elevation))
+            cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -200, 200))
 
     def createMap(self, mapSize, tileSize, nPlates, ratio, screenSize, zeta):
         start = time.time()
