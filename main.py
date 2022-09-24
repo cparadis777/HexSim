@@ -6,23 +6,28 @@ import pygame as pg
 
 import HexMapManager as hmm
 
+###### SETTINGS ######
 chosenSeed = 12345
-seed(chosenSeed)
-opensimplex.seed(chosenSeed)
-black = (0, 0, 0)
-size = [20, 18]  # size = [40]
+size = [20, 18]
 nPlates = 50
 ratio = 0.3
 tileSize = 2
 zeta = 0.9
 nIterationsMoisture = 600
+############
+
+###### RUNTIME VARIABLES #########
 screenFocus = (0, 0)
 originalTileSize = tileSize
+black = (0, 0, 0)
+seed(chosenSeed)
+opensimplex.seed(chosenSeed)
 HexMapManager = hmm.HexMapManager()
 # HexMapManager.screen.iconify()
 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, nIterationsMoisture)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
+#######
 
 print("starting")
 while True:
