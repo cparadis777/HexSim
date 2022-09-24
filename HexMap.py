@@ -6,9 +6,11 @@ import numpy as np
 import opensimplex
 
 import HexCell as HexCell
+import HexGenerator.HexRiver
 import utils
+from HexGenerator.HexHydrology import propagateMoisture
+from HexGenerator.HexTectonics import assignPlates
 from HexPlate import TectonicPlate
-from HexTectonics import assignPlates
 
 
 class HexMap(hx.HexMap):
@@ -18,14 +20,15 @@ class HexMap(hx.HexMap):
         self.tectonicPlates = []
         self.mapSize = None
         self.screenSize = None
+        self.rivers = []
 
     def createCells(self, mapSize, tileSize) -> None:
         coords = []
 
         if len(mapSize) == 1:
             raise Exception("Map must be rectangular, not circular.")
-# spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
-# coords = hx.cube_to_axial(spiralCoordinates)
+            # spiralCoordinates = hx.get_spiral(np.array((0, 0, 0)), 0, mapSize[0])
+            # coords = hx.cube_to_axial(spiralCoordinates)
 
         elif len(mapSize) == 2:
             if mapSize[0] % 2 != 0 or mapSize[1] % 2 != 0:
@@ -51,8 +54,10 @@ class HexMap(hx.HexMap):
         for i, plate in enumerate(self.tectonicPlates):
             plate.setBoundaryCells()
             plate.generateElevation(zeta)
-            print(f"\r    {i}/{len(self.tectonicPlates)} plates done", end='')
-        print(f"\r    {len(self.tectonicPlates)}/{len(self.tectonicPlates)} plates done")
+            print(f"\r    {i}/{len(self.tectonicPlates)} plates done", end="")
+        print(
+            f"\r     {len(self.tectonicPlates)}/{len(self.tectonicPlates)} plates done"
+        )
 
     def createTectonicPlates(self, nPlates, ratio) -> None:
         baseHeights = [-50, 50]
@@ -70,35 +75,62 @@ class HexMap(hx.HexMap):
 
     def setCellsBiomes(self) -> None:
         for cell in self.values():
-    # print(cell.elevation)
-    # if abs(cell.tectonicActivity) > 290:
-    #    print(cell.tectonicActivity)
-    #    cell.setBiomeColor((255, 0, 0))
-    #    cell.setElevation(cell.elevation + 100)
+            # print(cell.elevation)
+            # if abs(cell.tectonicActivity) > 290:
+            #    print(cell.tectonicActivity)
+            #    cell.setBiomeColor((255, 0, 0))
+            #    cell.setElevation(cell.elevation + 100)
 
-    # elif cell.elevation < 0:
-    if cell.elevation < 0:
-        cell.setBiomeColor(
-            utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
-        )
-    elif 0 <= cell.elevation < 100 and -20 < cell.temperature < 25:
-        cell.setBiomeColor((0, 125, 25))
-    elif 0 <= cell.elevation < 100 and cell.temperature >= 25:
-        cell.setBiomeColor((248, 238, 100))
-    elif 0 <= cell.elevation < 100 and cell.temperature <= -20:
-        cell.setBiomeColor((240, 240, 240))
-    elif 100 <= cell.elevation < 140:
-        cell.setBiomeColor((116, 118, 125))
-    elif 140 <= cell.elevation:
-        cell.setBiomeColor((255, 255, 255))
+            # elif cell.elevation < 0:
+            if cell.elevation < 0:
+                cell.setBiomeColor(
+                    utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
+                )
+            elif 0 <= cell.elevation < 100 and -20 < cell.temperature < 25:
+                cell.setBiomeColor((0, 125, 25))
+            elif 0 <= cell.elevation < 100 and cell.temperature >= 25:
+                cell.setBiomeColor((248, 238, 100))
+            elif 0 <= cell.elevation < 100 and cell.temperature <= -20:
+                cell.setBiomeColor((240, 240, 240))
+            elif 100 <= cell.elevation < 140:
+                cell.setBiomeColor((116, 118, 125))
+            elif 140 <= cell.elevation:
+                cell.setBiomeColor((255, 255, 255))
             else:
                 cell.setBiomeColor((0, 125, 25))
 
     def setElevationColor(self) -> None:
         for cell in self.values():
-            cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -200, 200))
+            cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -400, 400))
 
-    def createMap(self, mapSize, tileSize, nPlates, ratio, screenSize, zeta):
+    def propagateMoisture(self, nIterations):
+        frontier = []
+        moisture = 100
+        for cell in self._map.values():
+            if cell.elevation < 0:
+                cell.moisture = moisture
+                frontier.append(cell)
+        i = 0
+        while len(frontier) > 0 and i <= nIterations:
+            frontier = propagateMoisture(frontier)
+            i += 1
+            print(f"\r    {i}/{nIterations} iterations done", end="")
+        print(f"\r    {nIterations}/{nIterations} iterations done")
+
+        for cell in self._map.values():
+            color = utils.colorLerp(cell.moisture, 0, 100, (0, 0, 0), (0, 27, 142))
+            cell.setMoistureColor(color)
+
+    def createMap(
+            self,
+            mapSize,
+            tileSize,
+            nPlates,
+            ratio,
+            screenSize,
+            zetaTectonics,
+            nIterations,
+    ):
         start = time.time()
         self.screenSize = screenSize
         self.mapSize = mapSize
@@ -107,7 +139,7 @@ class HexMap(hx.HexMap):
         print("Creating tectonic plates")
         self.createTectonicPlates(nPlates, ratio)
         print("Simulating Tectonics")
-        self.generateTectonics(zeta)
+        self.generateTectonics(zetaTectonics)
         for i in self.tectonicPlates:
             i.shuffleEdges(0)
             i.setBoundaryCells()
@@ -115,17 +147,25 @@ class HexMap(hx.HexMap):
         self.setElevationColor()
         print("Setting temperatures")
         self.setTemperature(35, -40)
+        print("Generation winds")
+        self.generateWinds()
+        print("Propagating moisture")
+        self.propagateMoisture(nIterations)
+        print("Generating Rivers")
+        self.generateRivers()
         print("Attributing biomes")
         self.setCellsBiomes()
         stop = time.time()
-        print(f"Map generated in: {stop-start}s")
+        print(f"Map generated in: {stop - start}s")
 
     def setTemperature(self, equatorTemp, polesTemp) -> None:
         for cell in self._map.values():
             latitude = abs(cell.axial_coordinates[0][1])
             temperature = utils.numericalLerp(
                 latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
-            ) + randint(-5, 5)
+            ) + 5 * opensimplex.noise2(
+                cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
+            )
             cell.setTemperature(temperature)
             hot = (
                 255,
@@ -137,6 +177,23 @@ class HexMap(hx.HexMap):
                 utils.colorLerp(temperature, polesTemp, equatorTemp, cold, hot)
             )
 
-    def draw(self) -> None:
-        for i in self._map.values():
-            i.draw()
+    def generateWinds(self):
+        for cell in self._map.values():
+            cell.calculateWind()
+
+    def generateRivers(self):
+        id = 0
+        shortRivers = []
+        for cell in self._map.values():
+            if cell.elevation > 40 and cell.moisture > 90 and not cell.hasRiver() and cell.temperature > 0:
+                self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
+                id = id + 1
+        for river in self.rivers:
+            if len(river.cells) <= 2:
+                shortRivers.append(river)
+        for river in shortRivers:
+            self.rivers.remove(river)
+
+    def draw(self, rivers=False) -> None:
+        for cell in self._map.values():
+            cell.draw(rivers)

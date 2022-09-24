@@ -1,6 +1,8 @@
-import pygame as pg
-from HexMap import HexMap
 import time
+
+import pygame as pg
+
+from HexMap import HexMap
 
 
 class arrow(pg.sprite.Sprite):
@@ -27,6 +29,9 @@ class HexMapManager:
         self.arrowImage = pg.image.load("arrow.png").convert_alpha()
         self.spritesList = []
         self.mode = 0
+        self.riverMode = False
+        self.tileSize = None
+        self.center = (0, 0)
 
     def pgInit(self):
         self.height, self.width = 1000, 1000
@@ -44,32 +49,63 @@ class HexMapManager:
         self.mode = mode
         self.queueUpdate()
 
+    def setRiverMode(self, mode: bool) -> None:
+        if self.riverMode != mode:
+            self.riverMode = mode
+            self.queueUpdate()
+
     def queueUpdate(self):
+        print("queued update")
         self.update_enabled = True
+
+    def zoom(self, newtileSize):
+        self.tileSize = newtileSize
+        self.queueUpdate()
+
+    def pan(self, newCenter):
+        if newCenter == self.center:
+            pass
+        else:
+            self.center = newCenter
+        self.queueUpdate()
+
+    def setView(self, newTileSize, newCenter):
+        self.pan(newCenter)
+        self.zoom(newTileSize)
 
     def update(self):
         if self.update_enabled:
             self.screen.fill((0, 0, 0))
             self.draw()
             self.update_enabled = False
+            print("updated")
 
     def draw(self):
         start = time.time()
         for cell in list(self.currentMap.values()):
-            cell.draw(self.mode)
+            cell.draw(self.mode, self.riverMode, radius=self.tileSize)
             self.main_surf.blit(
-                cell.image, (cell.getPosition()[0], cell.getPosition()[1])
+                cell.image, (cell.getPosition()[0] + self.center[0], cell.getPosition()[1] + self.center[1])
             )
         for i in self.spritesList:
             self.main_surf.blit(i.image, (i.position[0] + 500, i.position[1] + 500))
 
         stop = time.time()
-        print(f"Draw call took {stop-start}s")
+        print(f"Draw call took {stop - start}s")
 
-    def createMap(self, mapSize, tileSize, nPlates, ratio, zeta):
+    def createMap(
+            self, mapSize, tileSize, nPlates, ratio, zetaTectonics, zetaHydrology
+    ):
         self.currentMap = HexMap()
+        self.tileSize = tileSize
         self.currentMap.createMap(
-            mapSize, tileSize, nPlates, ratio, (self.width, self.height), zeta
+            mapSize,
+            tileSize,
+            nPlates,
+            ratio,
+            (self.width, self.height),
+            zetaTectonics,
+            zetaHydrology,
         )
         self.queueUpdate()
 

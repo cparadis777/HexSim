@@ -1,14 +1,14 @@
 import math
 from random import randint
 
-import HexDirections
 import utils
+from . import HexDirection
 
 
 def assignPlates(cells, plates):
     frontiers = {plate: [] for plate in plates}
     for plate in plates:
-        cell = cells[randint(0, len(cells))]
+        cell = cells[randint(0, len(cells) - 1)]
         while cell.getTectonicPlate() is not None:
             cell = cells[randint(0, len(cells) - 1)]
         plate.addCell(cell)
@@ -94,7 +94,7 @@ def getCollisionMagnitude(plate1, plate2):
     if roundedAngle < 0:
         roundedAngle += 6
 
-    relativeDirection = HexDirections.HexDirections(roundedAngle)
+    relativeDirection = HexDirection.HexDirection(roundedAngle)
 
     magnitude = math.sqrt(relativeSpeedx**2 + relativeSpeedy**2) * (
         relativeDirection.value - direction1.value

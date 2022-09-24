@@ -1,5 +1,5 @@
-import utils as utils
+import HexGenerator.HexDirection
 
-x = utils.numericalLerp(10, 0, 100)
-x = utils.normalize(15, 0, 100)
-print(x)
+dir1 = HexGenerator.HexDirection.HexDirection.NE
+dir2 = HexGenerator.HexDirection.HexDirection.E
+print(dir1.opposite())

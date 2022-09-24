@@ -6,18 +6,21 @@ import pygame as pg
 
 import HexMapManager as hmm
 
-chosenSeed = 1234
+chosenSeed = 12345
 seed(chosenSeed)
 opensimplex.seed(chosenSeed)
 black = (0, 0, 0)
-size = [200, 180]
-# size = [40]
+size = [20, 18]  # size = [40]
 nPlates = 50
 ratio = 0.3
 tileSize = 2
-zeta = 0.6
+zeta = 0.9
+nIterationsMoisture = 600
+screenFocus = (0, 0)
+originalTileSize = tileSize
 HexMapManager = hmm.HexMapManager()
-HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
+# HexMapManager.screen.iconify()
+HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, nIterationsMoisture)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
 
@@ -31,17 +34,57 @@ while True:
                 print("mode switch: tectonics")
                 HexMapManager.setMode(0)
             if event.key == pg.K_1:
-                print("monde switch: biomes")
+                print("mode switch: biomes")
                 HexMapManager.setMode(1)
             if event.key == pg.K_3:
-                print("monde switch: heightmap")
+                print("mode switch: heightmap")
                 HexMapManager.setMode(2)
             if event.key == pg.K_4:
-                print("monde switch: temperature")
+                print("mode switch: temperature")
                 HexMapManager.setMode(3)
+            if event.key == pg.K_5:
+                print("mode switch: moisture")
+                HexMapManager.setMode(4)
+            if event.key == pg.K_r:
+                print("activating rivers")
+                if HexMapManager.riverMode:
+                    HexMapManager.setRiverMode(False)
+                    print("Set rivers false")
+                else:
+                    HexMapManager.setRiverMode(True)
+                    print("Set rivers true")
+            if event.key == pg.K_z:
+                print("zooming in")
+                tileSize = tileSize + 2
+                HexMapManager.zoom(tileSize)
+            if event.key == pg.K_x:
+                if tileSize - 2 < 2:
+                    pass
+                else:
+                    print("zooming out")
+                    tileSize = tileSize - 2
+                    HexMapManager.zoom(tileSize)
             if event.key == pg.K_n:
                 print("Regen")
-                HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta)
+                HexMapManager.createMap(
+                    size, tileSize, nPlates, ratio, zeta, nIterationsMoisture
+                )
+            if event.key == pg.K_UP:
+                screenFocus = (screenFocus[0], screenFocus[1] - tileSize)
+                HexMapManager.pan(screenFocus)
+            if event.key == pg.K_DOWN:
+                screenFocus = (screenFocus[0], screenFocus[1] + tileSize)
+                HexMapManager.pan(screenFocus)
+            if event.key == pg.K_LEFT:
+                screenFocus = (screenFocus[0] - tileSize, screenFocus[1])
+                HexMapManager.pan(screenFocus)
+            if event.key == pg.K_RIGHT:
+                screenFocus = (screenFocus[0] + tileSize, screenFocus[1])
+                HexMapManager.pan(screenFocus)
+            if event.key == pg.K_c:
+                tileSize = originalTileSize
+                screenFocus = (0, 0)
+                HexMapManager.setView(tileSize, screenFocus)
 
     HexMapManager.update()
 
