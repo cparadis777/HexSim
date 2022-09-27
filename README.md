@@ -22,6 +22,7 @@ Settings for map generation are modified in the main.py file:
 - ratio is the ratio of continental plates to the total number of tectonic plates
 - tileSize is the radius of the hex cells in pixels
 - zeta is the transmission factor for tectonic deformation propagation. 0 <= zeta < 1
+- axialTilt represents the tilt of the planet. Offsets the temperature gradient up (+) or down (-)
 - nIterationsMoisture is the number of iterations to run for the humidity propagation routine.
 
 Basic controls are offered:

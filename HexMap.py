@@ -121,6 +121,7 @@ class HexMap(hx.HexMap):
             ratio,
             screenSize,
             zetaTectonics,
+            axialTilt,
             nIterations,
     ):
         start = time.time()
@@ -138,7 +139,7 @@ class HexMap(hx.HexMap):
         print("Setting making heightmap")
         self.setElevationColor()
         print("Setting temperatures")
-        self.setTemperature(35, -40)
+        self.setTemperature(axialTilt, 35, -40)
         print("Generation winds")
         self.generateWinds()
         print("Propagating moisture")
@@ -150,14 +151,23 @@ class HexMap(hx.HexMap):
         stop = time.time()
         print(f"Map generated in: {stop - start}s")
 
-    def setTemperature(self, equatorTemp, polesTemp) -> None:
+    def setTemperature(self, axialTilt, equatorTemp, polesTemp) -> None:
         for cell in self._map.values():
-            latitude = abs(cell.axial_coordinates[0][1])
-            temperature = utils.numericalLerp(
-                latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
-            ) + 5 * opensimplex.noise2(
-                cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
-            )
+            coord = cell.axial_coordinates[0][1]
+            temperature = 0
+            latitude = coord + axialTilt
+            if latitude < 0:
+                temperature = utils.numericalLerp(
+                    latitude, -self.mapSize[1] / 2, 0, polesTemp, equatorTemp
+                ) + 5 * opensimplex.noise2(
+                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
+                )
+            elif latitude >= 0:
+                temperature = utils.numericalLerp(
+                    latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
+                ) + 5 * opensimplex.noise2(
+                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
+                )
             cell.setTemperature(temperature)
             hot = (
                 255,

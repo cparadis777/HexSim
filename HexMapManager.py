@@ -94,7 +94,7 @@ class HexMapManager:
         print(f"Draw call took {stop - start}s")
 
     def createMap(
-            self, mapSize, tileSize, nPlates, ratio, zetaTectonics, zetaHydrology
+            self, mapSize, tileSize, nPlates, ratio, zetaTectonics, axialTilt, nIterationsMoisture
     ):
         self.currentMap = HexMap()
         self.tileSize = tileSize
@@ -105,7 +105,8 @@ class HexMapManager:
             ratio,
             (self.width, self.height),
             zetaTectonics,
-            zetaHydrology,
+            axialTilt,
+            nIterationsMoisture
         )
         self.queueUpdate()
 

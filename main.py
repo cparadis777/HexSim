@@ -14,6 +14,7 @@ ratio = 0.4
 tileSize = 6
 zeta = 0.1
 nIterationsMoisture = 600
+axialTilt = -10
 ############
 
 ###### RUNTIME VARIABLES #########
@@ -24,7 +25,7 @@ seed(chosenSeed)
 opensimplex.seed(chosenSeed)
 HexMapManager = hmm.HexMapManager()
 # HexMapManager.screen.iconify()
-HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, nIterationsMoisture)
+HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, axialTilt, nIterationsMoisture)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
 HexMapManager.setRiverMode(True)
