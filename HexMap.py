@@ -78,7 +78,7 @@ class HexMap(hx.HexMap):
         for cell in self.values():
             if cell.elevation < 0:
                 HexBiomes.oceanBiomes(cell)
-            elif cell.elevation > 100:
+            elif cell.elevation > 90:
                 HexBiomes.mountainBiomes(cell)
             elif 0 < cell.temperature < 20:
                 HexBiomes.temperateBiomes(cell)
@@ -93,7 +93,7 @@ class HexMap(hx.HexMap):
 
     def setElevationColor(self) -> None:
         for cell in self.values():
-            cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -400, 400))
+            cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -100, 100))
 
     def propagateMoisture(self, nIterations):
         frontier = []

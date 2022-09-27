@@ -7,7 +7,7 @@ def mountainBiomes(cell):
         cell.setBiomeColor((204, 202, 202))
     elif cell.temperature > 0:
         cell.biome = "Mountain"
-        cell.setBiomeColor((86, 86, 89))
+        cell.setBiomeColor((166, 172, 173))
 
 
 def oceanBiomes(cell):

@@ -12,9 +12,9 @@ size = [100, 90]
 nPlates = 20
 ratio = 0.4
 tileSize = 6
-zeta = 0.1
+zeta = 0.8
 nIterationsMoisture = 600
-axialTilt = -10
+axialTilt = 2
 ############
 
 ###### RUNTIME VARIABLES #########
@@ -74,7 +74,7 @@ while True:
             if event.key == pg.K_n:
                 print("Regen")
                 HexMapManager.createMap(
-                    size, tileSize, nPlates, ratio, zeta, nIterationsMoisture
+                    size, tileSize, nPlates, ratio, zeta, axialTilt, nIterationsMoisture
                 )
             if event.key == pg.K_UP:
                 screenFocus = (screenFocus[0], screenFocus[1] + tileSize)

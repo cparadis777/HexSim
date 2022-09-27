@@ -1,7 +1,6 @@
 import math
 from random import randint
 
-import utils
 from . import HexDirection
 
 
@@ -96,7 +95,8 @@ def getCollisionMagnitude(plate1, plate2):
 
     relativeDirection = HexDirection.HexDirection(roundedAngle)
 
-    magnitude = math.sqrt(relativeSpeedx**2 + relativeSpeedy**2) * (
-        relativeDirection.value - direction1.value
+    magnitude = math.sqrt(relativeSpeedx ** 2 + relativeSpeedy ** 2) * (
+            relativeDirection.value - direction1.value
     )
-    return utils.clamp(magnitude, -300, 300)
+
+    return magnitude

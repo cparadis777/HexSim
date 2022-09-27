@@ -54,22 +54,22 @@ class HexRiver:
         self.end = self.cells[-1]
         inDirection = self.end.riverIn[0]
 
-        if self.end.getNeighbor(inDirection.opposite()).hasRiver() and self.end.getNeighbor(
-                inDirection.opposite()) is not None:
-            self.end.riverOut = inDirection.opposite()
-            self.end.riverEnd = False
-            hitExistingRiver = True
-
-        elif self.end.getNeighbor(inDirection.opposite().previous()).hasRiver() and self.end.getNeighbor(
-                inDirection.opposite().previous()) is not None:
-            self.end.riverOut = inDirection.opposite().previous()
-            self.end.riverEnd = False
-            hitExistingRiver = True
-        elif self.end.getNeighbor(inDirection.opposite().next()).hasRiver() and self.end.getNeighbor(
-                inDirection.opposite().next()) is not None:
-            self.end.riverOut = inDirection.opposite().next()
-            self.end.riverEnd = False
-            hitExistingRiver = True
+        # if self.end.getNeighbor(inDirection.opposite()).hasRiver() and self.end.getNeighbor(
+        #         inDirection.opposite()) is not None:
+        #     self.end.riverOut = inDirection.opposite()
+        #     self.end.riverEnd = False
+        #     hitExistingRiver = True
+        #
+        # elif self.end.getNeighbor(inDirection.opposite().previous()).hasRiver() and self.end.getNeighbor(
+        #         inDirection.opposite().previous()) is not None:
+        #     self.end.riverOut = inDirection.opposite().previous()
+        #     self.end.riverEnd = False
+        #     hitExistingRiver = True
+        # elif self.end.getNeighbor(inDirection.opposite().next()).hasRiver() and self.end.getNeighbor(
+        #         inDirection.opposite().next()) is not None:
+        #     self.end.riverOut = inDirection.opposite().next()
+        #     self.end.riverEnd = False
+        #     hitExistingRiver = True
 
         if not hitExistingRiver:
             self.end.riverEnd = True

@@ -4,7 +4,6 @@ from random import randint
 # import numpy as np
 import opensimplex
 
-import utils
 from HexGenerator import HexTectonics
 from HexGenerator.HexDirection import HexDirection
 
@@ -27,7 +26,7 @@ class TectonicPlate:
         cell.setTectonicColor(self.color)
 
     def setDirection(self):
-        self.speed = randint(0, 100)
+        self.speed = randint(0, 10)
         self.direction = HexDirection(randint(0, 5))
 
     def setBoundaryCells(self):
@@ -59,7 +58,7 @@ class TectonicPlate:
 
         for boundary in self.boundaries:
             magnitude = HexTectonics.getCollisionMagnitude(self, boundary)
-            self.collisions[boundary] = utils.clamp(magnitude, -75, 75)
+            self.collisions[boundary] = magnitude
             heightDifference = self.baseHeight - boundary.baseHeight
             if -30 < heightDifference < 30:
                 for cell in self.boundaries[boundary]:
@@ -86,7 +85,7 @@ class TectonicPlate:
             i.setElevation(
                 abs(opensimplex.noise2(x=coord[0][0] / (self.map.mapSize[0] / 2),
                                        y=coord[0][1] / (self.map.mapSize[1] / 2))) * 30 +
-                i.getTectonicActivity() / 300 * self.baseHeight
+                i.getTectonicActivity() / 100 * self.baseHeight
                 + self.baseHeight
             )
         # print(i.elevation)
