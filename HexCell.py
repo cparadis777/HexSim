@@ -26,7 +26,7 @@ class HexCell(HexTile):
         self.corners = None
         self.edges = None
         self.image = None
-        self.colors = [None, None, None, None, None, None]
+        self.colors = [(125, 125, 125) for i in range(5)]
         self.tectonicColor = None
         self.tectonicActivity = 0
         self.biomeColor = None
@@ -41,6 +41,7 @@ class HexCell(HexTile):
         self.riverEnd = False
         self.riverIn = []
         self.riverOut = None
+        self.biome = None
         self.setCorners()
 
     def draw(self, mode, riverMode, radius=None):
@@ -109,7 +110,9 @@ class HexCell(HexTile):
         maxDifferentialDirection = HexDirection.E
         for direction in HexDirection:
             try:
-                differential = self.temperature - self.getNeighbor(direction).temperature
+                differential = (
+                        self.temperature - self.getNeighbor(direction).temperature
+                )
                 if differential > maxDifferential:
                     maxDifferential = differential
                     maxDifferentialDirection = direction
@@ -149,7 +152,12 @@ class HexCell(HexTile):
         self.colors[2] = color
 
     def hasRiver(self) -> bool:
-        if self.riverEnd or self.riverStart or self.riverOut is not None and len(self.riverIn) != 0:
+        if (
+                self.riverEnd
+                or self.riverStart
+                or self.riverOut is not None
+                or len(self.riverIn) != 0
+        ):
             return True
         else:
             return False
@@ -196,9 +204,15 @@ class HexCell(HexTile):
                 neighbor = None
         return neighbor
 
-    def makeHexSurface(self,
-                       color, radius, riverMode, border_color=(100, 100, 100), border=False, hollow=False
-                       ):
+    def makeHexSurface(
+            self,
+            color,
+            radius,
+            riverMode,
+            border_color=(100, 100, 100),
+            border=False,
+            hollow=False,
+    ):
         """
         Draws a hexagon with gray borders on a pygame surface.
         :param self:
@@ -243,55 +257,65 @@ class HexCell(HexTile):
             pg.draw.lines(surface, border_color, True, points + center, 1)
 
         if riverMode:
-            if self.hasRiver():
-                if self.riverStart:
-                    pg.draw.circle(surface, (50, 50, 255), center, radius / 2)
-                if self.riverOut is None:
-                    pg.draw.circle(surface, (0, 0, 255), center, radius / 2.5)
-                else:
-                    outgoingEdge = None
-                    match self.riverOut:
+            self.drawRiver(points, surface, center, radius)
+        return surface
+
+    def drawRiver(self, points, surface, center, radius):
+        if self.hasRiver():
+            if self.riverStart:
+                pass
+                # pg.draw.circle(surface, (50, 50, 255), center, radius / 2)
+
+            if self.riverOut is None:
+                pass
+                # pg.draw.circle(surface, (0, 0, 255), center, radius / 2.5)
+
+            else:
+                outgoingEdge = None
+                match self.riverOut:
+                    case HexDirection.W:
+                        outgoingEdge = (points[3, :], points[2, :])
+                    case HexDirection.NW:
+                        outgoingEdge = (points[2, :], points[1, :])
+                    case HexDirection.NE:
+                        outgoingEdge = (points[1, :], points[0, :])
+                    case HexDirection.E:
+                        outgoingEdge = (points[0, :], points[5, :])
+                    case HexDirection.SE:
+                        outgoingEdge = (points[5, :], points[4, :])
+                    case HexDirection.SW:
+                        outgoingEdge = (points[4, :], points[3, :])
+                    case _:
+                        raise ValueError("Invalid direction")
+
+                endPoint = (
+                    (outgoingEdge[0][0] + outgoingEdge[1][0]) / 2,
+                    (outgoingEdge[0][1] + outgoingEdge[1][1]) / 2,
+                )
+                endPoint = (endPoint[0] + center[0], endPoint[1] + center[1])
+                pg.draw.line(surface, (0, 0, 255), center, endPoint, 3)
+
+            if len(self.riverIn) != 0:
+                for incomingRiverDirection in self.riverIn:
+                    incomingEdge = None
+                    match incomingRiverDirection:
                         case HexDirection.W:
-                            outgoingEdge = (points[3, :], points[2, :])
+                            incomingEdge = (points[3, :], points[2, :])
                         case HexDirection.NW:
-                            outgoingEdge = (points[2, :], points[1, :])
+                            incomingEdge = (points[2, :], points[1, :])
                         case HexDirection.NE:
-                            outgoingEdge = (points[1, :], points[0, :])
+                            incomingEdge = (points[1, :], points[0, :])
                         case HexDirection.E:
-                            outgoingEdge = (points[0, :], points[5, :])
+                            incomingEdge = (points[0, :], points[5, :])
                         case HexDirection.SE:
-                            outgoingEdge = (points[5, :], points[4, :])
+                            incomingEdge = (points[5, :], points[4, :])
                         case HexDirection.SW:
-                            outgoingEdge = (points[4, :], points[3, :])
+                            incomingEdge = (points[4, :], points[3, :])
                         case _:
                             raise ValueError("Invalid direction")
-
-                    endPoint = ((outgoingEdge[0][0] + outgoingEdge[1][0]) / 2,
-                                (outgoingEdge[0][1] + outgoingEdge[1][1]) / 2)
-                    endPoint = (endPoint[0] + center[0], endPoint[1] + center[1])
-                    pg.draw.line(surface, (0, 0, 255), center, endPoint, 3)
-
-                if len(self.riverIn) != 0:
-                    for incomingRiverDirection in self.riverIn:
-                        incomingEdge = None
-                        match incomingRiverDirection:
-                            case HexDirection.W:
-                                incomingEdge = (points[3, :], points[2, :])
-                            case HexDirection.NW:
-                                incomingEdge = (points[2, :], points[1, :])
-                            case HexDirection.NE:
-                                incomingEdge = (points[1, :], points[0, :])
-                            case HexDirection.E:
-                                incomingEdge = (points[0, :], points[5, :])
-                            case HexDirection.SE:
-                                incomingEdge = (points[5, :], points[4, :])
-                            case HexDirection.SW:
-                                incomingEdge = (points[4, :], points[3, :])
-                            case _:
-                                raise ValueError("Invalid direction")
-                        startPoint = ((incomingEdge[0][0] + incomingEdge[1][0]) / 2,
-                                      (incomingEdge[0][1] + incomingEdge[1][1]) / 2)
-                        startPoint = (startPoint[0] + center[0], startPoint[1] + center[1])
-                        pg.draw.line(surface, (0, 0, 255), startPoint, center, 3)
-
-        return surface
+                    startPoint = (
+                        (incomingEdge[0][0] + incomingEdge[1][0]) / 2,
+                        (incomingEdge[0][1] + incomingEdge[1][1]) / 2,
+                    )
+                    startPoint = (startPoint[0] + center[0], startPoint[1] + center[1])
+                    pg.draw.line(surface, (0, 0, 255), startPoint, center, 3)

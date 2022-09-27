@@ -17,6 +17,18 @@ class HexDirection(Enum):
 
         return distance
 
+    def next(self):
+        if self == HexDirection.SW:
+            return HexDirection.W
+        else:
+            return HexDirection(self.value + 1)
+
+    def previous(self):
+        if self == HexDirection.W:
+            return HexDirection.SW
+        else:
+            return HexDirection(self.value - 1)
+
     def opposite(self):
         match self:
             case HexDirection.W:

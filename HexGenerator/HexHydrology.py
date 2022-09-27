@@ -20,10 +20,10 @@ def propagateMoisture(cells: list) -> list:
                     elevationFactor = 1
                 elif deltaElevation > 0:
                     elevationFactor = utils.numericalLerp(deltaElevation, 0, 50, 1, 0)
-                if cell.elevation < 0:
-                    elevationFactor = 1
 
-                moistureToPropagate = cell.moisture * windFactor * elevationFactor
+                moistureToPropagate = (
+                        1 * cell.moisture * windFactor + 0 * cell.moisture * elevationFactor
+                )
                 if neighbor.moisture < moistureToPropagate:
                     neighbor.moisture = moistureToPropagate
                     if neighbor not in frontier:

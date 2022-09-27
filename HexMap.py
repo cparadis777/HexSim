@@ -8,6 +8,7 @@ import opensimplex
 import HexCell as HexCell
 import HexGenerator.HexRiver
 import utils
+from HexGenerator import HexBiomes
 from HexGenerator.HexHydrology import propagateMoisture
 from HexGenerator.HexTectonics import assignPlates
 from HexPlate import TectonicPlate
@@ -75,29 +76,20 @@ class HexMap(hx.HexMap):
 
     def setCellsBiomes(self) -> None:
         for cell in self.values():
-            # print(cell.elevation)
-            # if abs(cell.tectonicActivity) > 290:
-            #    print(cell.tectonicActivity)
-            #    cell.setBiomeColor((255, 0, 0))
-            #    cell.setElevation(cell.elevation + 100)
-
-            # elif cell.elevation < 0:
             if cell.elevation < 0:
-                cell.setBiomeColor(
-                    utils.colorLerp(cell.elevation, -50, 0, (0, 30, 52), (0, 212, 255))
-                )
-            elif 0 <= cell.elevation < 100 and -20 < cell.temperature < 25:
-                cell.setBiomeColor((0, 125, 25))
-            elif 0 <= cell.elevation < 100 and cell.temperature >= 25:
-                cell.setBiomeColor((248, 238, 100))
-            elif 0 <= cell.elevation < 100 and cell.temperature <= -20:
-                cell.setBiomeColor((240, 240, 240))
-            elif 100 <= cell.elevation < 140:
-                cell.setBiomeColor((116, 118, 125))
-            elif 140 <= cell.elevation:
-                cell.setBiomeColor((255, 255, 255))
+                HexBiomes.oceanBiomes(cell)
+            elif cell.elevation > 100:
+                HexBiomes.mountainBiomes(cell)
+            elif 0 < cell.temperature < 20:
+                HexBiomes.temperateBiomes(cell)
+            elif -20 < cell.temperature <= 0:
+                HexBiomes.borealBiomes(cell)
+            elif cell.temperature <= -20:
+                HexBiomes.polarBiomes(cell)
+            elif cell.temperature >= 20:
+                HexBiomes.tropicalBiomes(cell)
             else:
-                cell.setBiomeColor((0, 125, 25))
+                cell.setBiomeColor((255, 255, 255))
 
     def setElevationColor(self) -> None:
         for cell in self.values():
@@ -185,7 +177,12 @@ class HexMap(hx.HexMap):
         id = 0
         shortRivers = []
         for cell in self._map.values():
-            if cell.elevation > 40 and cell.moisture > 90 and not cell.hasRiver() and cell.temperature > 0:
+            if (
+                    cell.elevation > 40
+                    and cell.moisture > 90
+                    and not cell.hasRiver()
+                    and cell.temperature > 0
+            ):
                 self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
                 id = id + 1
         for river in self.rivers:
@@ -193,6 +190,7 @@ class HexMap(hx.HexMap):
                 shortRivers.append(river)
         for river in shortRivers:
             self.rivers.remove(river)
+        print(f"    Generated {len(self.rivers)} rivers")
 
     def draw(self, rivers=False) -> None:
         for cell in self._map.values():

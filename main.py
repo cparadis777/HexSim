@@ -7,12 +7,12 @@ import pygame as pg
 import HexMapManager as hmm
 
 ###### SETTINGS ######
-chosenSeed = 741951741
-size = [200, 180]
-nPlates = 40
+chosenSeed = 7856876
+size = [100, 90]
+nPlates = 20
 ratio = 0.4
-tileSize = 2
-zeta = 0.6
+tileSize = 6
+zeta = 0.1
 nIterationsMoisture = 600
 ############
 
@@ -27,6 +27,7 @@ HexMapManager = hmm.HexMapManager()
 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, nIterationsMoisture)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)
+HexMapManager.setRiverMode(True)
 #######
 
 print("starting")
@@ -81,10 +82,10 @@ while True:
                 screenFocus = (screenFocus[0], screenFocus[1] - tileSize)
                 HexMapManager.pan(screenFocus)
             if event.key == pg.K_LEFT:
-                screenFocus = (screenFocus[0] - tileSize, screenFocus[1])
+                screenFocus = (screenFocus[0] + tileSize, screenFocus[1])
                 HexMapManager.pan(screenFocus)
             if event.key == pg.K_RIGHT:
-                screenFocus = (screenFocus[0] + tileSize, screenFocus[1])
+                screenFocus = (screenFocus[0] - tileSize, screenFocus[1])
                 HexMapManager.pan(screenFocus)
             if event.key == pg.K_c:
                 tileSize = originalTileSize
