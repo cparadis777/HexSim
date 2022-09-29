@@ -1,3 +1,5 @@
+from random import randint
+
 import numpy as np
 
 
@@ -56,3 +58,9 @@ def numericalLerp(value, minValue, maxValue, minRange, maxRange) -> float:
 def normalize(value, min, max):
     normalizedValue = (value - min) / (max - min)
     return normalizedValue
+
+
+def randomColor():
+    color = (randint(0, 255),
+             randint(0, 255),
+             randint(0, 255))

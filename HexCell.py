@@ -42,6 +42,7 @@ class HexCell(HexTile):
         self.riverIn = []
         self.riverOut = None
         self.biome = None
+        self.fertility = 0
         self.setCorners()
 
     def draw(self, mode, riverMode, radius=None):
@@ -52,7 +53,7 @@ class HexCell(HexTile):
             self.position = hx.axial_to_pixel(self.axial_coordinates, radius)
             self.position = (
                 self.position[0][0] + self.screensize[0] / 2,
-                self.position[0][1] + self.screensize[0] / 2,
+                self.position[0][1] + self.screensize[1] / 2,
             )
         self.image = self.makeHexSurface(self.colors[mode], self.radius, riverMode)
 
@@ -106,18 +107,31 @@ class HexCell(HexTile):
         self.windDirection = direction
 
     def calculateWind(self):
-        maxDifferential = 0
+        maxDifferential = -100
         maxDifferentialDirection = HexDirection.E
         for direction in HexDirection:
-            try:
+            if self.getNeighbor(direction) is not None:
                 differential = (
                         self.temperature - self.getNeighbor(direction).temperature
                 )
                 if differential > maxDifferential:
                     maxDifferential = differential
                     maxDifferentialDirection = direction
-            except Exception:
-                pass  # Edge of map
+
+        if self.getNeighbor(maxDifferentialDirection).elevation > 90:
+            lowestNeighbor = maxDifferentialDirection
+            lowestElevation = self.getNeighbor(maxDifferentialDirection).elevation
+            if self.getNeighbor(maxDifferentialDirection.next()) is not None:
+                if self.getNeighbor(maxDifferentialDirection.next()).elevation < lowestElevation:
+                    lowestNeighbor = maxDifferentialDirection.next()
+                    lowestElevation = self.getNeighbor(maxDifferentialDirection.next()).elevation
+            if self.getNeighbor(maxDifferentialDirection.previous()) is not None:
+                if self.getNeighbor(maxDifferentialDirection.previous()).elevation < lowestElevation:
+                    lowestNeighbor = maxDifferentialDirection.previous()
+                    lowestElevation = self.getNeighbor(maxDifferentialDirection.previous())
+            maxDifferentialDirection = lowestNeighbor
+            maxDifferential = self.temperature - self.getNeighbor(maxDifferentialDirection).temperature
+
         self.windDirection = maxDifferentialDirection
         self.windSpeed = maxDifferential
 

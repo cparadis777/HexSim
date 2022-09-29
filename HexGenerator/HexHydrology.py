@@ -10,7 +10,7 @@ def propagateMoisture(cells: list) -> list:
             if neighbor is None:
                 pass
             elif neighbor.elevation > 0:
-                windFactors = [1, 0.8, 0.3, 0]
+                windFactors = [1, 0.8, 0.5, 0.3]
                 windComponent = cell.windDirection.distance(direction)
                 windFactor = windFactors[windComponent]
 
@@ -19,10 +19,10 @@ def propagateMoisture(cells: list) -> list:
                 if deltaElevation <= 0:
                     elevationFactor = 1
                 elif deltaElevation > 0:
-                    elevationFactor = utils.numericalLerp(deltaElevation, 0, 50, 1, 0)
+                    elevationFactor = utils.numericalLerp(deltaElevation, 0, 50, 1, 0.1)
 
                 moistureToPropagate = (
-                        1 * cell.moisture * windFactor + 0 * cell.moisture * elevationFactor
+                        0.9 * cell.moisture * windFactor + 0.1 * cell.moisture * elevationFactor
                 )
                 if neighbor.moisture < moistureToPropagate:
                     neighbor.moisture = moistureToPropagate

@@ -74,23 +74,6 @@ class HexMap(hx.HexMap):
                     TectonicPlate(self, baseHeights[0] + randint(-20, 20), color)
                 )
 
-    def setCellsBiomes(self) -> None:
-        for cell in self.values():
-            if cell.elevation < 0:
-                HexBiomes.oceanBiomes(cell)
-            elif cell.elevation > 90:
-                HexBiomes.mountainBiomes(cell)
-            elif 0 < cell.temperature < 20:
-                HexBiomes.temperateBiomes(cell)
-            elif -20 < cell.temperature <= 0:
-                HexBiomes.borealBiomes(cell)
-            elif cell.temperature <= -20:
-                HexBiomes.polarBiomes(cell)
-            elif cell.temperature >= 20:
-                HexBiomes.tropicalBiomes(cell)
-            else:
-                cell.setBiomeColor((255, 255, 255))
-
     def setElevationColor(self) -> None:
         for cell in self.values():
             cell.setHeightColor(utils.grayscaleLerp(cell.elevation, -100, 100))
@@ -112,6 +95,88 @@ class HexMap(hx.HexMap):
         for cell in self._map.values():
             color = utils.colorLerp(cell.moisture, 0, 100, (0, 0, 0), (0, 27, 142))
             cell.setMoistureColor(color)
+
+    def setTemperature(self, axialTilt, equatorTemp, polesTemp) -> None:
+        for cell in self._map.values():
+            coord = cell.axial_coordinates[0][1]
+            temperature = 0
+            latitude = coord + axialTilt
+            if latitude < 0:
+                temperature = utils.numericalLerp(
+                    latitude, -self.mapSize[1] / 2, 0, polesTemp, equatorTemp
+                ) + 5 * opensimplex.noise2(
+                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
+                )
+            elif latitude >= 0:
+                temperature = utils.numericalLerp(
+                    latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
+                ) + 5 * opensimplex.noise2(
+                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
+                )
+            cell.setTemperature(temperature)
+            hot = (
+                255,
+                0,
+                0,
+            )
+            cold = (0, 30, 152)
+            cell.setTemperatureColor(
+                utils.colorLerp(temperature, polesTemp, equatorTemp, cold, hot)
+            )
+
+    def generateWinds(self):
+        for cell in self._map.values():
+            cell.calculateWind()
+
+    def generateRivers(self):
+        id = 0
+        shortRivers = []
+        for cell in self._map.values():
+            hasNeighboringRiver = any([neighbor.hasRiver() for neighbor in cell.getNeighbors() if neighbor is not None])
+            if (
+                    cell.elevation > 50
+                    and cell.moisture > 40
+                    and not cell.hasRiver()
+                    and cell.temperature > 0
+                    and not hasNeighboringRiver
+                    and randint(0, 10) > 9
+            ):
+                self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
+                id = id + 1
+        for river in self.rivers:
+            if len(river.cells) <= 2:
+                shortRivers.append(river)
+                for cell in river.cells:
+                    cell.riverEnd = False
+                    cell.riverStart = False
+                    cell.riverIn = []
+                    cell.riverOut = None
+        for river in shortRivers:
+            self.rivers.remove(river)
+        print(f"    Generated {len(self.rivers)} rivers")
+
+    def setCellsBiomes(self) -> None:
+        for cell in self.values():
+            if cell.elevation < 0:
+                HexBiomes.oceanBiomes(cell)
+            elif cell.riverEnd:
+                HexBiomes.lakeBiomes(cell)
+            elif cell.elevation > 90:
+                HexBiomes.mountainBiomes(cell)
+            elif 0 < cell.temperature < 20:
+                HexBiomes.temperateBiomes(cell)
+            elif -20 < cell.temperature <= 0:
+                HexBiomes.borealBiomes(cell)
+            elif cell.temperature <= -20:
+                HexBiomes.polarBiomes(cell)
+            elif cell.temperature >= 20:
+                HexBiomes.tropicalBiomes(cell)
+            else:
+                cell.setBiomeColor((255, 255, 255))
+
+    def draw(self, rivers=False) -> None:
+        for cell in self._map.values():
+            cell.draw(rivers)
 
     def createMap(
             self,
@@ -150,58 +215,3 @@ class HexMap(hx.HexMap):
         self.setCellsBiomes()
         stop = time.time()
         print(f"Map generated in: {stop - start}s")
-
-    def setTemperature(self, axialTilt, equatorTemp, polesTemp) -> None:
-        for cell in self._map.values():
-            coord = cell.axial_coordinates[0][1]
-            temperature = 0
-            latitude = coord + axialTilt
-            if latitude < 0:
-                temperature = utils.numericalLerp(
-                    latitude, -self.mapSize[1] / 2, 0, polesTemp, equatorTemp
-                ) + 5 * opensimplex.noise2(
-                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
-                )
-            elif latitude >= 0:
-                temperature = utils.numericalLerp(
-                    latitude, 0, self.mapSize[1] / 2, equatorTemp, polesTemp
-                ) + 5 * opensimplex.noise2(
-                    cell.axial_coordinates[0][0], cell.axial_coordinates[0][1]
-                )
-            cell.setTemperature(temperature)
-            hot = (
-                255,
-                0,
-                0,
-            )
-            cold = (0, 30, 152)
-            cell.setTemperatureColor(
-                utils.colorLerp(temperature, polesTemp, equatorTemp, cold, hot)
-            )
-
-    def generateWinds(self):
-        for cell in self._map.values():
-            cell.calculateWind()
-
-    def generateRivers(self):
-        id = 0
-        shortRivers = []
-        for cell in self._map.values():
-            if (
-                    cell.elevation > 40
-                    and cell.moisture > 90
-                    and not cell.hasRiver()
-                    and cell.temperature > 0
-            ):
-                self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
-                id = id + 1
-        for river in self.rivers:
-            if len(river.cells) <= 2:
-                shortRivers.append(river)
-        for river in shortRivers:
-            self.rivers.remove(river)
-        print(f"    Generated {len(self.rivers)} rivers")
-
-    def draw(self, rivers=False) -> None:
-        for cell in self._map.values():
-            cell.draw(rivers)

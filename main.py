@@ -1,5 +1,5 @@
 import sys
-from random import seed
+from random import randint, seed
 
 import opensimplex
 import pygame as pg
@@ -7,14 +7,15 @@ import pygame as pg
 import HexMapManager as hmm
 
 ###### SETTINGS ######
-chosenSeed = 7856876
-size = [100, 90]
-nPlates = 20
+# chosenSeed = 47894561
+chosenSeed = randint(0, 99999999)
+size = [300, 200]
+nPlates = 50
 ratio = 0.4
-tileSize = 6
-zeta = 0.8
+tileSize = 2
+zeta = 0.5
 nIterationsMoisture = 600
-axialTilt = 2
+axialTilt = 3
 ############
 
 ###### RUNTIME VARIABLES #########
@@ -24,7 +25,6 @@ black = (0, 0, 0)
 seed(chosenSeed)
 opensimplex.seed(chosenSeed)
 HexMapManager = hmm.HexMapManager()
-# HexMapManager.screen.iconify()
 HexMapManager.createMap(size, tileSize, nPlates, ratio, zeta, axialTilt, nIterationsMoisture)
 HexMapManager.queueUpdate()
 HexMapManager.setMode(1)

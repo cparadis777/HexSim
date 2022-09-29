@@ -10,6 +10,11 @@ def mountainBiomes(cell):
         cell.setBiomeColor((166, 172, 173))
 
 
+def lakeBiomes(cell):
+    cell.biome = "lake"
+    cell.setBiomeColor((52, 149, 235))
+
+
 def oceanBiomes(cell):
     color = utils.colorLerp(cell.elevation, -100, 0, (0, 31, 179), (0, 45, 255))
     cell.biome = "Ocean"
@@ -20,9 +25,11 @@ def borealBiomes(cell):
     if cell.moisture > 50:
         cell.biome = "Boreal Forest"
         cell.setBiomeColor((110, 180, 131))
+        cell.fertility = 20
     elif cell.moisture <= 50:
         cell.biome = "Tundra"
         cell.setBiomeColor((186, 214, 165))
+        cell.fertility = 10
 
 
 def polarBiomes(cell):
@@ -34,9 +41,11 @@ def tropicalBiomes(cell):
     if cell.moisture >= 50:
         cell.biome = "Tropical Rain Forest"
         cell.setBiomeColor((29, 174, 0))
+        cell.fertility = 75
     elif 25 < cell.moisture < 50:
         cell.biome = "Tropical Desert"
         cell.setBiomeColor((189, 212, 36))
+        cell.fertility = 30
     elif cell.moisture <= 25:
         cell.biome = "Arid Desert"
         cell.setBiomeColor((246, 239, 0))
@@ -46,6 +55,8 @@ def temperateBiomes(cell):
     if cell.moisture > 50:
         cell.biome = "Temperate Wet Forest"
         cell.setBiomeColor((34, 194, 2))
+        cell.fertility = 100
     if cell.moisture <= 50:
         cell.biome = "Temperate Dry Forest"
         cell.setBiomeColor((50, 192, 58))
+        cell.fertility = 75

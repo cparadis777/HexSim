@@ -1,16 +1,21 @@
+import random
 from random import randint
 
-# import hexy as hx
-# import numpy as np
 import opensimplex
 
 from HexGenerator import HexTectonics
 from HexGenerator.HexDirection import HexDirection
 
 
+# import hexy as hx
+# import numpy as np
+
+
 class TectonicPlate:
     def __init__(self, map, baseHeight, color):
         self.map = map
+        self.max = 0
+        self.min = 0
         self.cells = []
         self.boundaryCells = []
         self.setDirection()
@@ -64,12 +69,21 @@ class TectonicPlate:
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(magnitude)
 
-            elif heightDifference >= 30:
+            elif 30 <= heightDifference < 50:
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(magnitude)
 
-            elif heightDifference <= -30:
+            elif 50 <= heightDifference:
+                for cell in self.boundaries[boundary]:
+                    cell.setTectonicActivity(magnitude / 2)
+
+            elif -50 < heightDifference <= -30:
                 magnitude = -magnitude
+                for cell in self.boundaries[boundary]:
+                    cell.setTectonicActivity(-magnitude)
+
+            elif heightDifference <= -50:
+                magnitude = -magnitude / 2
                 for cell in self.boundaries[boundary]:
                     cell.setTectonicActivity(-magnitude)
 
@@ -81,11 +95,8 @@ class TectonicPlate:
 
         for i in self.cells:
             coord = i.axial_coordinates
-            # print(i.getTectonicActivity())
-            i.setElevation(
-                abs(opensimplex.noise2(x=coord[0][0] / (self.map.mapSize[0] / 2),
-                                       y=coord[0][1] / (self.map.mapSize[1] / 2))) * 30 +
-                i.getTectonicActivity() / 100 * self.baseHeight
-                + self.baseHeight
-            )
-        # print(i.elevation)
+            noise = opensimplex.noise2(x=coord[0][0] / (self.map.mapSize[0] / 2),
+                                       y=coord[0][1] / (self.map.mapSize[1] / 2))
+
+            elevation = self.baseHeight + i.getTectonicActivity() * random.uniform(0.7, 1) + noise * 5
+            i.setElevation(elevation)
