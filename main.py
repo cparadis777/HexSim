@@ -9,10 +9,11 @@ import HexMapManager as hmm
 ###### SETTINGS ######
 # chosenSeed = 47894561
 chosenSeed = randint(0, 99999999)
-size = [300, 200]
-nPlates = 50
+# size = [150, 100]
+size = [40, 30]
+nPlates = 5
 ratio = 0.4
-tileSize = 2
+tileSize = 20
 zeta = 0.5
 nIterationsMoisture = 600
 axialTilt = 3
@@ -92,6 +93,15 @@ while True:
                 tileSize = originalTileSize
                 screenFocus = (0, 0)
                 HexMapManager.setView(tileSize, screenFocus)
+            if event.key == pg.K_s:
+                print("Initiating simulation")
+                HexMapManager.startSim()
+            if event.key == pg.K_b:
+                print("Toggling borders")
+                HexMapManager.toggleBorders()
+            if event.key == pg.K_d:
+                print("Stepping simulation")
+                HexMapManager.stepSimulation()
 
     HexMapManager.update()
 

@@ -14,10 +14,11 @@ class HexMapManager:
         self.spritesList = []
         self.mode = 0
         self.riverMode = False
+        self.borderMode = False
         self.tileSize = None
         self.center = (0, 0)
         self.currentMap = None
-        self.simulator = HexSimulator(self.currentMap)
+        self.simulator = None
 
     def pgInit(self) -> None:
         self.width, self.height = 1200, 1000
@@ -40,6 +41,10 @@ class HexMapManager:
             self.riverMode = mode
             self.queueUpdate()
 
+    def toggleBorders(self) -> None:
+        self.borderMode = not self.borderMode
+        self.queueUpdate()
+
     def queueUpdate(self) -> None:
         print("queued update")
         self.update_enabled = True
@@ -54,7 +59,14 @@ class HexMapManager:
     def draw(self) -> None:
         start = time.time()
         for cell in list(self.currentMap.values()):
-            cell.draw(self.mode, self.riverMode, radius=self.tileSize)
+            if self.borderMode:
+                if cell.nation is not None:
+                    cell.draw(self.mode, self.riverMode, radius=self.tileSize, border=True,
+                              borderColor=cell.nation.color)
+                else:
+                    cell.draw(self.mode, self.riverMode, radius=self.tileSize)
+            else:
+                cell.draw(self.mode, self.riverMode, radius=self.tileSize)
             self.main_surf.blit(
                 cell.image, (cell.getPosition()[0] + self.center[0], cell.getPosition()[1] + self.center[1])
             )
@@ -92,4 +104,13 @@ class HexMapManager:
             axialTilt,
             nIterationsMoisture
         )
+        self.simulator = HexSimulator(self.currentMap)
+        self.queueUpdate()
+
+    def stepSimulation(self):
+        self.simulator.step()
+        self.queueUpdate()
+
+    def startSim(self):
+        self.simulator.start()
         self.queueUpdate()

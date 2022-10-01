@@ -131,18 +131,22 @@ class HexMap(hx.HexMap):
     def generateRivers(self):
         id = 0
         shortRivers = []
-        for cell in self._map.values():
-            hasNeighboringRiver = any([neighbor.hasRiver() for neighbor in cell.getNeighbors() if neighbor is not None])
+        cells = sorted(self._map.values(), key=lambda x: x.moisture)
+        for cell in cells:
             if (
-                    cell.elevation > 50
+                    cell.elevation > 30
                     and cell.moisture > 40
                     and not cell.hasRiver()
                     and cell.temperature > 0
-                    and not hasNeighboringRiver
-                    and randint(0, 10) > 9
             ):
-                self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
-                id = id + 1
+                tooClose = False
+                for river in self.rivers:
+                    if hx.get_cube_distance(cell.cube_coordinates, river.source.cube_coordinates) < 5:
+                        tooClose = True
+                if not tooClose:
+                    self.rivers.append(HexGenerator.HexRiver.HexRiver(id, cell))
+                    id = id + 1
+
         for river in self.rivers:
             if len(river.cells) <= 2:
                 shortRivers.append(river)
@@ -174,9 +178,15 @@ class HexMap(hx.HexMap):
             else:
                 cell.setBiomeColor((255, 255, 255))
 
-    def draw(self, rivers=False) -> None:
+    def draw(self, rivers=False, borders=False) -> None:
         for cell in self._map.values():
-            cell.draw(rivers)
+            if borders:
+                if cell.nation is not None:
+                    cell.draw(riverMode=rivers, border=True, border_color=cell.nation.color)
+                else:
+                    cell.draw(riverMode=rivers)
+            else:
+                cell.draw(riverMode=rivers)
 
     def createMap(
             self,

@@ -3,7 +3,6 @@ import numpy as np
 import pygame as pg
 from hexy.hex_tile import HexTile
 
-import utils
 from HexGenerator.HexDirection import HexDirection
 # from random import randint
 from HexPlate import TectonicPlate
@@ -14,6 +13,7 @@ class HexCell(HexTile):
             self, axial_coordinates, radius, elevation, tile_id, hexMap, screensize
     ):
         super().__init__(axial_coordinates, radius, tile_id)
+        self.border = None
         self.screensize = screensize
         self.axial_coordinates = np.array([axial_coordinates])
         self.cube_coordinates = hx.axial_to_cube(self.axial_coordinates)
@@ -43,9 +43,10 @@ class HexCell(HexTile):
         self.riverOut = None
         self.biome = None
         self.fertility = 0
+        self.nation = None
         self.setCorners()
 
-    def draw(self, mode, riverMode, radius=None):
+    def draw(self, mode, riverMode, radius=None, border=False, borderColor=None):
         if radius is None:
             radius = self.radius
         else:
@@ -55,7 +56,11 @@ class HexCell(HexTile):
                 self.position[0][0] + self.screensize[0] / 2,
                 self.position[0][1] + self.screensize[1] / 2,
             )
-        self.image = self.makeHexSurface(self.colors[mode], self.radius, riverMode)
+        if border:
+            self.image = self.makeHexSurface(self.colors[mode], self.radius, riverMode, border=border,
+                                             border_color=borderColor)
+        else:
+            self.image = self.makeHexSurface(self.colors[mode], self.radius, riverMode)
 
     def setCorners(self):
         angles_in_radians = np.deg2rad([60 * i + 30 for i in range(6)])
@@ -195,6 +200,8 @@ class HexCell(HexTile):
         try:
             neighbor = self.hexMap._map[neighborCoord]
         except Exception:
+            neighbor = None
+            """"
             offsetCoord = utils.axial_to_offset(self.axial_coordinates)
             neighborOffset = np.array([[offsetCoord[0][0], offsetCoord[0][1]]])
             neighborOffset[0][0] = -1 * neighborOffset[0][0]
@@ -216,13 +223,14 @@ class HexCell(HexTile):
                 neighbor = self.hexMap._map[neighborCoord]
             except Exception:
                 neighbor = None
+        """
         return neighbor
 
     def makeHexSurface(
             self,
             color,
             radius,
-            riverMode,
+            riverMode=False,
             border_color=(100, 100, 100),
             border=False,
             hollow=False,
@@ -241,7 +249,16 @@ class HexCell(HexTile):
         angles_in_radians = np.deg2rad([60 * i + 30 for i in range(6)])
         x = radius * np.cos(angles_in_radians)
         y = radius * np.sin(angles_in_radians)
+        x_border = radius * 0.9 * np.cos(angles_in_radians)
+        y_border = radius * 0.9 * np.sin(angles_in_radians)
+
         points = np.round(np.vstack([x, y]).T)
+        points = np.flipud(points)
+        points = np.roll(points, -2, 0)
+
+        points_border = np.round(np.vstack([x_border, y_border]).T)
+        points_border = np.flipud(points_border)
+        points_border = np.roll(points_border, -2, 0)
 
         sorted_x = sorted(points[:, 0])
         sorted_y = sorted(points[:, 1])
@@ -266,9 +283,23 @@ class HexCell(HexTile):
             pg.draw.polygon(surface, color, points + center, 0)
 
         points[sorted_idxs[-1:-4:-1]] += [0, 1]
+
         # if border is true or hollow is true draw border.
         if border or hollow:
-            pg.draw.lines(surface, border_color, True, points + center, 1)
+            for i, neighbor in enumerate(self.neighbors):
+                if neighbor is None:
+                    pass
+                elif neighbor.nation == self.nation:
+                    pass
+                else:
+                    if i == 5:
+                        index = 0
+                    else:
+                        index = i + 1
+                    pg.draw.line(surface, border_color, points_border[i] + center, points_border[index] + center,
+                                 max(round(radius * 0.1), 5))
+
+            # pg.draw.lines(surface, border_color, True, points_border + center, max(round(radius * 0.1), 2))
 
         if riverMode:
             self.drawRiver(points, surface, center, radius)
@@ -288,17 +319,17 @@ class HexCell(HexTile):
                 outgoingEdge = None
                 match self.riverOut:
                     case HexDirection.W:
-                        outgoingEdge = (points[3, :], points[2, :])
+                        outgoingEdge = (points[0, :], points[1, :])
                     case HexDirection.NW:
-                        outgoingEdge = (points[2, :], points[1, :])
+                        outgoingEdge = (points[1, :], points[2, :])
                     case HexDirection.NE:
-                        outgoingEdge = (points[1, :], points[0, :])
+                        outgoingEdge = (points[2, :], points[3, :])
                     case HexDirection.E:
-                        outgoingEdge = (points[0, :], points[5, :])
+                        outgoingEdge = (points[3, :], points[4, :])
                     case HexDirection.SE:
-                        outgoingEdge = (points[5, :], points[4, :])
+                        outgoingEdge = (points[4, :], points[5, :])
                     case HexDirection.SW:
-                        outgoingEdge = (points[4, :], points[3, :])
+                        outgoingEdge = (points[5, :], points[0, :])
                     case _:
                         raise ValueError("Invalid direction")
 
@@ -314,17 +345,17 @@ class HexCell(HexTile):
                     incomingEdge = None
                     match incomingRiverDirection:
                         case HexDirection.W:
-                            incomingEdge = (points[3, :], points[2, :])
+                            incomingEdge = (points[0, :], points[1, :])
                         case HexDirection.NW:
-                            incomingEdge = (points[2, :], points[1, :])
+                            incomingEdge = (points[1, :], points[2, :])
                         case HexDirection.NE:
-                            incomingEdge = (points[1, :], points[0, :])
+                            incomingEdge = (points[2, :], points[3, :])
                         case HexDirection.E:
-                            incomingEdge = (points[0, :], points[5, :])
+                            incomingEdge = (points[3, :], points[4, :])
                         case HexDirection.SE:
-                            incomingEdge = (points[5, :], points[4, :])
+                            incomingEdge = (points[4, :], points[5, :])
                         case HexDirection.SW:
-                            incomingEdge = (points[4, :], points[3, :])
+                            incomingEdge = (points[5, :], points[0, :])
                         case _:
                             raise ValueError("Invalid direction")
                     startPoint = (
